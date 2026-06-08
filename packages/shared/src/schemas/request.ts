@@ -29,6 +29,11 @@ export const scheduleCollectionSchema = z.object({
   notes: z.string().trim().max(500).optional()
 });
 
+export const updateCollectionScheduleSchema = z.object({
+  collectionDate: z.coerce.date().optional(),
+  notes: z.string().trim().max(500).nullable().optional()
+});
+
 export type WasteType = z.infer<typeof wasteTypeSchema>;
 export type RequestStatus = z.infer<typeof requestStatusSchema>;
 export type CreateWasteRequestInput = z.infer<typeof createWasteRequestSchema>;
@@ -36,3 +41,4 @@ export type UpdateWasteRequestInput = z.infer<typeof updateWasteRequestSchema>;
 export type AssignWasteRequestInput = z.infer<typeof assignWasteRequestSchema>;
 export type UpdateWasteRequestStatusInput = z.infer<typeof updateWasteRequestStatusSchema>;
 export type ScheduleCollectionInput = z.infer<typeof scheduleCollectionSchema>;
+export type UpdateCollectionScheduleInput = z.infer<typeof updateCollectionScheduleSchema>;
