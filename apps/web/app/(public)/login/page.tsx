@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LoginForm } from "@/components/forms/login-form";
 import { AuthShell } from "@/components/layout/auth-shell";
 
@@ -9,7 +10,9 @@ export default function LoginPage() {
       footerHref="/register"
       footerLabel="Create an account"
     >
-      <LoginForm />
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
     </AuthShell>
   );
 }
