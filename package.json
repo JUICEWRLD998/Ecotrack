@@ -1,0 +1,27 @@
+{
+  "name": "ecotrack",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run build -w @ecotrack/shared && concurrently \"npm run dev -w @ecotrack/api\" \"npm run dev -w @ecotrack/web\"",
+    "dev:web": "npm run build -w @ecotrack/shared && npm run dev -w @ecotrack/web",
+    "dev:api": "npm run build -w @ecotrack/shared && npm run dev -w @ecotrack/api",
+    "build": "npm run build -w @ecotrack/shared && npm run build -w @ecotrack/api && npm run build -w @ecotrack/web",
+    "typecheck": "npm run typecheck -w @ecotrack/shared && npm run typecheck -w @ecotrack/api && npm run typecheck -w @ecotrack/web",
+    "lint": "npm run lint -w @ecotrack/web",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prisma": "^6.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

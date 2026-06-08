@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  RESIDENT
+  ADMIN
+}
+
+enum WasteType {
+  HOUSEHOLD
+  RECYCLABLE
+  ORGANIC
+}
+
+enum RequestStatus {
+  PENDING
+  ASSIGNED
+  SCHEDULED
+  IN_PROGRESS
+  COLLECTED
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String
+  email         String          @unique
+  password      String
+  role          UserRole        @default(RESIDENT)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  requests      WasteRequest[]  @relation("ResidentRequests")
+  assigned      WasteRequest[]  @relation("AssignedRequests")
+  notifications Notification[]
+  statusChanges StatusHistory[]
+  auditLogs     AuditLog[]
+
+  @@index([role])
+  @@index([createdAt])
+}
+
+model WasteRequest {
+  id            String               @id @default(cuid())
+  userId        String
+  assignedToId  String?
+  wasteType     WasteType
+  address       String
+  description   String?
+  imageUrl      String?
+  status        RequestStatus        @default(PENDING)
+  preferredDate DateTime?
+  scheduledDate DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  user          User                 @relation("ResidentRequests", fields: [userId], references: [id])
+  assignedTo    User?                @relation("AssignedRequests", fields: [assignedToId], references: [id])
+  schedules     CollectionSchedule[]
+  statusHistory StatusHistory[]
+
+  @@index([userId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([wasteType])
+  @@index([scheduledDate])
+  @@index([createdAt])
+}
+
+model CollectionSchedule {
+  id             String       @id @default(cuid())
+  requestId      String
+  collectionDate DateTime
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  request        WasteRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([collectionDate])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model StatusHistory {
+  id          String        @id @default(cuid())
+  requestId   String
+  status      RequestStatus
+  note        String?
+  changedById String?
+  createdAt   DateTime      @default(now())
+
+  request     WasteRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  changedBy   User?         @relation(fields: [changedById], references: [id])
+
+  @@index([requestId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  actor     User?    @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+model EmailLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  to         String
+  subject    String
+  providerId String?
+  status     String
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
