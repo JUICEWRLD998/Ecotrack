@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { loginSchema, registerSchema } from "@ecotrack/shared";
 import { authenticate } from "../../middleware/authenticate";
+import { authRateLimiter } from "../../middleware/rate-limiter";
 import { validateRequest } from "../../middleware/validate-request";
 import { asyncHandler } from "../../utils/async-handler";
 import { loginUser, registerUser } from "./auth.service";
@@ -17,6 +18,7 @@ authRouter.get("/status", (_request, response) => {
 
 authRouter.post(
   "/register",
+  authRateLimiter,
   validateRequest({ body: registerSchema }),
   asyncHandler(async (request, response) => {
     const payload = await registerUser(request.body);
@@ -26,6 +28,7 @@ authRouter.post(
 
 authRouter.post(
   "/login",
+  authRateLimiter,
   validateRequest({ body: loginSchema }),
   asyncHandler(async (request, response) => {
     const payload = await loginUser(request.body);

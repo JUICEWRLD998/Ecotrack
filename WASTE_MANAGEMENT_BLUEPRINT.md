@@ -577,6 +577,7 @@ Charts:
 
 ### Phase 7: Analytics
 
+
 - Add analytics APIs.
 - Build Recharts dashboard.
 - Add date, status, and waste type filters.

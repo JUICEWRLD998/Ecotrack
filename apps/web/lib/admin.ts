@@ -71,6 +71,36 @@ export type AdminOverview = {
   recentRequests: AdminWasteRequest[];
 };
 
+export type AnalyticsFilters = {
+  status?: string;
+  wasteType?: string;
+  from?: string;
+  to?: string;
+};
+
+export type WasteTypeAnalytics = {
+  wasteType: WasteType;
+  count: number;
+  percentage: number;
+};
+
+export type MonthlyTrend = {
+  month: string;
+  monthKey: string;
+  total: number;
+  collected: number;
+  pending: number;
+  completionRate: number;
+};
+
+export type CompletionRateAnalytics = {
+  totalRequests: number;
+  completedRequests: number;
+  inProgressRequests: number;
+  outstandingRequests: number;
+  completionRate: number;
+};
+
 type AdminRequestsResponse = {
   requests: AdminWasteRequest[];
 };
@@ -85,6 +115,18 @@ type AdminUsersResponse = {
 
 type AdminOverviewResponse = {
   overview: AdminOverview;
+};
+
+type WasteTypeAnalyticsResponse = {
+  wasteTypes: WasteTypeAnalytics[];
+};
+
+type MonthlyTrendsResponse = {
+  trends: MonthlyTrend[];
+};
+
+type CompletionRateAnalyticsResponse = {
+  completionRate: CompletionRateAnalytics;
 };
 
 function withAuth(apiToken: string) {
@@ -148,13 +190,46 @@ export async function getAdminUsers(
   return payload.users;
 }
 
-export async function getAdminOverview(apiToken: string) {
-  const payload = await apiClient<AdminOverviewResponse>("/admin/analytics/overview", {
+export async function getAdminOverview(apiToken: string, filters: AnalyticsFilters = {}) {
+  const payload = await apiClient<AdminOverviewResponse>(`/admin/analytics/overview${toQueryString(filters)}`, {
     headers: withAuth(apiToken),
     cache: "no-store"
   });
 
   return payload.overview;
+}
+
+export async function getAdminWasteTypeAnalytics(apiToken: string, filters: AnalyticsFilters = {}) {
+  const payload = await apiClient<WasteTypeAnalyticsResponse>(
+    `/admin/analytics/waste-types${toQueryString(filters)}`,
+    {
+      headers: withAuth(apiToken),
+      cache: "no-store"
+    }
+  );
+
+  return payload.wasteTypes;
+}
+
+export async function getAdminMonthlyTrends(apiToken: string, filters: AnalyticsFilters = {}) {
+  const payload = await apiClient<MonthlyTrendsResponse>(`/admin/analytics/monthly-trends${toQueryString(filters)}`, {
+    headers: withAuth(apiToken),
+    cache: "no-store"
+  });
+
+  return payload.trends;
+}
+
+export async function getAdminCompletionRate(apiToken: string, filters: AnalyticsFilters = {}) {
+  const payload = await apiClient<CompletionRateAnalyticsResponse>(
+    `/admin/analytics/completion-rate${toQueryString(filters)}`,
+    {
+      headers: withAuth(apiToken),
+      cache: "no-store"
+    }
+  );
+
+  return payload.completionRate;
 }
 
 export function getAdminUsersByRole(users: AdminUser[], role: UserRole) {

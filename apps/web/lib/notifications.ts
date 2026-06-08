@@ -18,6 +18,14 @@ type UnreadCountResponse = {
   unreadCount: number;
 };
 
+type NotificationResponse = {
+  notification: AppNotification;
+};
+
+type MarkAllNotificationsResponse = {
+  success: boolean;
+};
+
 function withAuth(apiToken: string) {
   return {
     Authorization: `Bearer ${apiToken}`
@@ -38,4 +46,20 @@ export async function getUnreadNotificationCount(apiToken: string) {
   });
 
   return payload.unreadCount;
+}
+
+export async function markNotificationRead(apiToken: string, notificationId: string) {
+  const payload = await apiClient<NotificationResponse>(`/notifications/${notificationId}/read`, {
+    method: "PATCH",
+    headers: withAuth(apiToken)
+  });
+
+  return payload.notification;
+}
+
+export async function markAllNotificationsRead(apiToken: string) {
+  return apiClient<MarkAllNotificationsResponse>("/notifications/read-all", {
+    method: "PATCH",
+    headers: withAuth(apiToken)
+  });
 }

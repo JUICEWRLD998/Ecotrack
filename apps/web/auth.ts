@@ -12,7 +12,25 @@ type ApiAuthResponse = {
   token: string;
 };
 
-const apiBaseUrl = process.env.API_BASE_URL ?? "http://localhost:4000/api";
+function getApiBaseUrl() {
+  if (process.env.API_BASE_URL) {
+    return process.env.API_BASE_URL;
+  }
+
+  if (process.env.NEXTAUTH_URL) {
+    return `${process.env.NEXTAUTH_URL}/api/backend`;
+  }
+
+  if (process.env.AUTH_URL) {
+    return `${process.env.AUTH_URL}/api/backend`;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/backend`;
+  }
+
+  return "http://localhost:4000/api";
+}
 
 function isUserRole(role: unknown): role is UserRole {
   return role === "RESIDENT" || role === "ADMIN";
@@ -41,7 +59,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const response = await fetch(`${apiBaseUrl}/auth/login`, {
+        const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

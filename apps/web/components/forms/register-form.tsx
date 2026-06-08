@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiClient } from "@/lib/api-client";
+import { toast } from "@/lib/toast";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -35,6 +36,8 @@ export function RegisterForm() {
           body: JSON.stringify(values)
         });
 
+        toast.success("Account created successfully!");
+
         const result = await signIn("credentials", {
           email: values.email,
           password: values.password,
@@ -42,6 +45,7 @@ export function RegisterForm() {
         });
 
         if (result?.error) {
+          toast.info("Please log in with your new account");
           router.push("/login");
           return;
         }
@@ -51,6 +55,7 @@ export function RegisterForm() {
       } catch (caughtError) {
         const message = caughtError instanceof Error ? caughtError.message : "Registration failed";
         setError(message);
+        toast.error(message);
       }
     });
   });

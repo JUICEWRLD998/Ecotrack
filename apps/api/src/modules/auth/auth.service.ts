@@ -32,18 +32,30 @@ export async function registerUser(input: RegisterInput) {
   }
 
   const password = await bcrypt.hash(input.password, PASSWORD_SALT_ROUNDS);
-  const user = await prisma.user.create({
-    data: {
-      name: input.name,
-      email: input.email,
-      password
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true
-    }
+  const user = await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        name: input.name,
+        email: input.email,
+        password
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true
+      }
+    });
+
+    await tx.notification.create({
+      data: {
+        userId: createdUser.id,
+        title: "Welcome to EcoTrack",
+        message: "Your account is ready. Submit a collection request when your bin needs pickup."
+      }
+    });
+
+    return createdUser;
   });
 
   const authUser = toAuthUser(user);

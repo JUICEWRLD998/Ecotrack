@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/authenticate";
+import { uploadRateLimiter } from "../../middleware/rate-limiter";
 import { asyncHandler } from "../../utils/async-handler";
 import { createUploadSignature } from "../../services/cloudinary.service";
 
@@ -16,6 +17,7 @@ uploadsRouter.get("/status", (_request, response) => {
 uploadsRouter.post(
   "/signature",
   authenticate,
+  uploadRateLimiter,
   asyncHandler(async (_request, response) => {
     response.json({ upload: createUploadSignature() });
   })

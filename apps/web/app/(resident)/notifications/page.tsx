@@ -7,9 +7,10 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/requests";
 import { getNotifications } from "@/lib/notifications";
+import { cn } from "@/lib/utils";
 
 export default async function NotificationsPage() {
   const session = await auth();
@@ -20,12 +21,18 @@ export default async function NotificationsPage() {
 
   const { notifications, unreadCount } = await getNotifications(session.apiToken);
   const shellRole = session.user.role === "ADMIN" ? "admin" : "resident";
+  const readCount = notifications.length - unreadCount;
 
   return (
     <AppShell title="Notifications" role={shellRole}>
       <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0">
-          <CardTitle>Inbox</CardTitle>
+        <CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div className="space-y-1.5">
+            <CardTitle>Inbox</CardTitle>
+            <CardDescription>
+              {unreadCount} unread, {readCount} read
+            </CardDescription>
+          </div>
           <MarkAllNotificationsButton apiToken={session.apiToken} disabled={unreadCount === 0} />
         </CardHeader>
         <CardContent>
@@ -34,7 +41,10 @@ export default async function NotificationsPage() {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
+                  className={cn(
+                    "grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start",
+                    !notification.read && "bg-secondary/30"
+                  )}
                 >
                   <div className="min-w-0 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">

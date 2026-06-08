@@ -51,6 +51,13 @@ const adminSchedulesQuerySchema = z.object({
   to: z.coerce.date().optional()
 });
 
+const adminAnalyticsQuerySchema = z.object({
+  status: requestStatusSchema.optional(),
+  wasteType: wasteTypeSchema.optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional()
+});
+
 const requestInclude = {
   user: {
     select: {
@@ -269,6 +276,131 @@ function buildUserWhere(query: z.infer<typeof adminUsersQuerySchema>) {
   }
 
   return where;
+}
+
+function startOfDayUtc(date: Date) {
+  const nextDate = new Date(date);
+  nextDate.setUTCHours(0, 0, 0, 0);
+  return nextDate;
+}
+
+function endOfDayUtc(date: Date) {
+  const nextDate = new Date(date);
+  nextDate.setUTCHours(23, 59, 59, 999);
+  return nextDate;
+}
+
+function startOfMonthUtc(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+}
+
+function endOfMonthUtc(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+}
+
+function addMonthsUtc(date: Date, amount: number) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + amount, 1));
+}
+
+function formatMonthKey(date: Date) {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+function formatMonthLabel(monthKey: string) {
+  const [year = 0, month = 1] = monthKey.split("-").map(Number);
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+function buildDateRange(from?: Date, to?: Date) {
+  const createdAt: Prisma.DateTimeFilter = {};
+
+  if (from) {
+    createdAt.gte = startOfDayUtc(from);
+  }
+
+  if (to) {
+    createdAt.lte = endOfDayUtc(to);
+  }
+
+  return Object.keys(createdAt).length > 0 ? createdAt : undefined;
+}
+
+function buildAnalyticsRequestWhere(query: z.infer<typeof adminAnalyticsQuerySchema>) {
+  const where: Prisma.WasteRequestWhereInput = {};
+  const dateRange = buildDateRange(query.from, query.to);
+
+  if (query.status) {
+    where.status = query.status;
+  }
+
+  if (query.wasteType) {
+    where.wasteType = query.wasteType;
+  }
+
+  if (dateRange) {
+    where.createdAt = dateRange;
+  }
+
+  return where;
+}
+
+function shouldCountStatus(queryStatus: z.infer<typeof requestStatusSchema> | undefined, status: z.infer<typeof requestStatusSchema>) {
+  return !queryStatus || queryStatus === status;
+}
+
+function buildAnalyticsStatusWhere(
+  query: z.infer<typeof adminAnalyticsQuerySchema>,
+  status: z.infer<typeof requestStatusSchema>
+) {
+  if (!shouldCountStatus(query.status, status)) {
+    return null;
+  }
+
+  return {
+    ...buildAnalyticsRequestWhere(query),
+    status
+  } satisfies Prisma.WasteRequestWhereInput;
+}
+
+function buildMonthlyTrendWindow(query: z.infer<typeof adminAnalyticsQuerySchema>) {
+  const now = new Date();
+  const to = query.to ? endOfMonthUtc(query.to) : endOfMonthUtc(now);
+  const from = query.from ? startOfMonthUtc(query.from) : startOfMonthUtc(addMonthsUtc(to, -5));
+
+  return { from, to };
+}
+
+function buildMonthlyTrendBuckets(from: Date, to: Date) {
+  const buckets = new Map<
+    string,
+    {
+      month: string;
+      monthKey: string;
+      total: number;
+      collected: number;
+      pending: number;
+    }
+  >();
+
+  for (let cursor = startOfMonthUtc(from); cursor <= to; cursor = addMonthsUtc(cursor, 1)) {
+    const monthKey = formatMonthKey(cursor);
+    buckets.set(monthKey, {
+      month: formatMonthLabel(monthKey),
+      monthKey,
+      total: 0,
+      collected: 0,
+      pending: 0
+    });
+  }
+
+  return buckets;
 }
 
 adminRouter.get(
@@ -870,7 +1002,13 @@ adminRouter.delete(
 
 adminRouter.get(
   "/analytics/overview",
-  asyncHandler(async (_request, response) => {
+  validateRequest({ query: adminAnalyticsQuerySchema }),
+  asyncHandler(async (request, response) => {
+    const where = buildAnalyticsRequestWhere(request.query);
+    const pendingWhere = buildAnalyticsStatusWhere(request.query, "PENDING");
+    const assignedWhere = buildAnalyticsStatusWhere(request.query, "ASSIGNED");
+    const scheduledWhere = buildAnalyticsStatusWhere(request.query, "SCHEDULED");
+    const completedWhere = buildAnalyticsStatusWhere(request.query, "COLLECTED");
     const [
       totalRequests,
       pendingRequests,
@@ -883,26 +1021,29 @@ adminRouter.get(
       wasteTypeGroups,
       recentRequests
     ] = await Promise.all([
-      prisma.wasteRequest.count(),
-      prisma.wasteRequest.count({ where: { status: "PENDING" } }),
-      prisma.wasteRequest.count({ where: { status: "ASSIGNED" } }),
-      prisma.wasteRequest.count({ where: { status: "SCHEDULED" } }),
-      prisma.wasteRequest.count({ where: { status: "COLLECTED" } }),
+      prisma.wasteRequest.count({ where }),
+      pendingWhere ? prisma.wasteRequest.count({ where: pendingWhere }) : Promise.resolve(0),
+      assignedWhere ? prisma.wasteRequest.count({ where: assignedWhere }) : Promise.resolve(0),
+      scheduledWhere ? prisma.wasteRequest.count({ where: scheduledWhere }) : Promise.resolve(0),
+      completedWhere ? prisma.wasteRequest.count({ where: completedWhere }) : Promise.resolve(0),
       prisma.user.count(),
       prisma.user.count({ where: { isActive: true } }),
       prisma.wasteRequest.groupBy({
         by: ["status"],
+        where,
         _count: {
           status: true
         }
       }),
       prisma.wasteRequest.groupBy({
         by: ["wasteType"],
+        where,
         _count: {
           wasteType: true
         }
       }),
       prisma.wasteRequest.findMany({
+        where,
         take: 5,
         orderBy: {
           createdAt: "desc"
@@ -932,6 +1073,110 @@ adminRouter.get(
           count: wasteTypeGroups.find((group) => group.wasteType === wasteType)?._count.wasteType ?? 0
         })),
         recentRequests
+      }
+    });
+  })
+);
+
+adminRouter.get(
+  "/analytics/waste-types",
+  validateRequest({ query: adminAnalyticsQuerySchema }),
+  asyncHandler(async (request, response) => {
+    const where = buildAnalyticsRequestWhere(request.query);
+    const [totalRequests, wasteTypeGroups] = await Promise.all([
+      prisma.wasteRequest.count({ where }),
+      prisma.wasteRequest.groupBy({
+        by: ["wasteType"],
+        where,
+        _count: {
+          wasteType: true
+        }
+      })
+    ]);
+
+    response.json({
+      wasteTypes: WASTE_TYPES.map((wasteType) => {
+        const count = wasteTypeGroups.find((group) => group.wasteType === wasteType)?._count.wasteType ?? 0;
+        const percentage = totalRequests === 0 ? 0 : Math.round((count / totalRequests) * 100);
+
+        return {
+          wasteType,
+          count,
+          percentage
+        };
+      })
+    });
+  })
+);
+
+adminRouter.get(
+  "/analytics/monthly-trends",
+  validateRequest({ query: adminAnalyticsQuerySchema }),
+  asyncHandler(async (request, response) => {
+    const { from, to } = buildMonthlyTrendWindow(request.query);
+    const where = buildAnalyticsRequestWhere({
+      ...request.query,
+      from,
+      to
+    });
+    const requests = await prisma.wasteRequest.findMany({
+      where,
+      select: {
+        createdAt: true,
+        status: true
+      }
+    });
+    const buckets = buildMonthlyTrendBuckets(from, to);
+
+    requests.forEach((wasteRequest) => {
+      const monthKey = formatMonthKey(wasteRequest.createdAt);
+      const bucket = buckets.get(monthKey);
+
+      if (!bucket) {
+        return;
+      }
+
+      bucket.total += 1;
+
+      if (wasteRequest.status === "COLLECTED") {
+        bucket.collected += 1;
+      }
+
+      if (wasteRequest.status === "PENDING") {
+        bucket.pending += 1;
+      }
+    });
+
+    response.json({
+      trends: Array.from(buckets.values()).map((bucket) => ({
+        ...bucket,
+        completionRate: bucket.total === 0 ? 0 : Math.round((bucket.collected / bucket.total) * 100)
+      }))
+    });
+  })
+);
+
+adminRouter.get(
+  "/analytics/completion-rate",
+  validateRequest({ query: adminAnalyticsQuerySchema }),
+  asyncHandler(async (request, response) => {
+    const where = buildAnalyticsRequestWhere(request.query);
+    const completedWhere = buildAnalyticsStatusWhere(request.query, "COLLECTED");
+    const inProgressWhere = buildAnalyticsStatusWhere(request.query, "IN_PROGRESS");
+    const [totalRequests, completedRequests, inProgressRequests] = await Promise.all([
+      prisma.wasteRequest.count({ where }),
+      completedWhere ? prisma.wasteRequest.count({ where: completedWhere }) : Promise.resolve(0),
+      inProgressWhere ? prisma.wasteRequest.count({ where: inProgressWhere }) : Promise.resolve(0)
+    ]);
+    const completionRate = totalRequests === 0 ? 0 : Math.round((completedRequests / totalRequests) * 100);
+
+    response.json({
+      completionRate: {
+        totalRequests,
+        completedRequests,
+        inProgressRequests,
+        outstandingRequests: totalRequests - completedRequests,
+        completionRate
       }
     });
   })

@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@ecotrack/shared"],
+  transpilePackages: ["@ecotrack/shared", "@ecotrack/api"],
+  experimental: {
+    externalDir: true
+  },
   images: {
     remotePatterns: [
       {

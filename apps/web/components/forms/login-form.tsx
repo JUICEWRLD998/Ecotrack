@@ -9,11 +9,12 @@ import { loginSchema, type LoginInput } from "@ecotrack/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/lib/toast";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const callbackUrl = searchParams?.get("callbackUrl") ?? "/dashboard";
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -36,10 +37,13 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        const errorMessage = "Invalid email or password";
+        setError(errorMessage);
+        toast.error(errorMessage);
         return;
       }
 
+      toast.success("Welcome back!");
       router.push(callbackUrl);
       router.refresh();
     });

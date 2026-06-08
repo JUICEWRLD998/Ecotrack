@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Check, CheckCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ApiError, apiClient } from "@/lib/api-client";
+import { markAllNotificationsRead, markNotificationRead } from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
 
 type NotificationReadButtonProps = {
@@ -18,7 +18,7 @@ type MarkAllNotificationsButtonProps = {
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof ApiError || error instanceof Error) {
+  if (error instanceof Error) {
     return error.message;
   }
 
@@ -35,12 +35,7 @@ export function NotificationReadButton({ apiToken, notificationId, read }: Notif
 
     startTransition(async () => {
       try {
-        await apiClient(`/notifications/${notificationId}/read`, {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${apiToken}`
-          }
-        });
+        await markNotificationRead(apiToken, notificationId);
 
         router.refresh();
       } catch (caughtError) {
@@ -74,12 +69,7 @@ export function MarkAllNotificationsButton({ apiToken, disabled }: MarkAllNotifi
 
     startTransition(async () => {
       try {
-        await apiClient("/notifications/read-all", {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${apiToken}`
-          }
-        });
+        await markAllNotificationsRead(apiToken);
 
         router.refresh();
       } catch (caughtError) {

@@ -13,6 +13,7 @@
     ],
     "paths": {
       "@/*": ["./*"],
+      "@ecotrack/api/*": ["../api/*"],
       "@ecotrack/shared": ["../../packages/shared/src"]
     }
   },

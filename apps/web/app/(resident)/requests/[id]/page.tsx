@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
@@ -85,9 +86,12 @@ export default async function RequestDetailsPage({ params }: RequestDetailsPageP
               {request.imageUrl ? (
                 <div className="space-y-2">
                   <h2 className="text-sm font-medium">Uploaded Image</h2>
-                  <img
+                  <Image
                     src={request.imageUrl}
                     alt="Submitted waste collection request"
+                    width={1200}
+                    height={675}
+                    sizes="(min-width: 1280px) 760px, 100vw"
                     className="aspect-video w-full rounded-md border object-cover"
                   />
                 </div>
