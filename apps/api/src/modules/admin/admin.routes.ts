@@ -17,6 +17,7 @@ import { prisma } from "../../config/prisma";
 import { authenticate } from "../../middleware/authenticate";
 import { requireRole } from "../../middleware/require-role";
 import { validateRequest } from "../../middleware/validate-request";
+import { createNotification, createNotifications } from "../../services/notification.service";
 import { AppError } from "../../utils/app-error";
 import { asyncHandler } from "../../utils/async-handler";
 
@@ -315,7 +316,8 @@ adminRouter.patch(
       },
       select: {
         id: true,
-        status: true
+        status: true,
+        userId: true
       }
     });
 
@@ -372,6 +374,19 @@ adminRouter.patch(
       })
     ]);
 
+    await createNotifications([
+      {
+        userId: existingRequest.userId,
+        title: "Request assigned",
+        message: `Your collection request has been assigned to ${assignee.name}.`
+      },
+      {
+        userId: assignee.id,
+        title: "Request assigned to you",
+        message: "A collection request has been assigned to you."
+      }
+    ]);
+
     response.json({ request: updatedRequest });
   })
 );
@@ -386,7 +401,9 @@ adminRouter.patch(
       },
       select: {
         id: true,
-        status: true
+        status: true,
+        userId: true,
+        assignedToId: true
       }
     });
 
@@ -423,6 +440,23 @@ adminRouter.patch(
           }
         }
       })
+    ]);
+
+    await createNotifications([
+      {
+        userId: existingRequest.userId,
+        title: "Request status updated",
+        message: `Your collection request status is now ${request.body.status.replace("_", " ").toLowerCase()}.`
+      },
+      ...(existingRequest.assignedToId && existingRequest.assignedToId !== request.user!.id
+        ? [
+            {
+              userId: existingRequest.assignedToId,
+              title: "Assigned request updated",
+              message: `A request assigned to you is now ${request.body.status.replace("_", " ").toLowerCase()}.`
+            }
+          ]
+        : [])
     ]);
 
     response.json({ request: updatedRequest });
@@ -547,7 +581,9 @@ adminRouter.post(
         },
         select: {
           id: true,
-          status: true
+          status: true,
+          userId: true,
+          assignedToId: true
         }
       });
 
@@ -599,6 +635,23 @@ adminRouter.post(
       return createdSchedule;
     });
 
+    await createNotifications([
+      {
+        userId: schedule.request.userId,
+        title: "Collection scheduled",
+        message: `Your collection is scheduled for ${schedule.collectionDate.toLocaleDateString("en-US")}.`
+      },
+      ...(schedule.request.assignedToId && schedule.request.assignedToId !== request.user!.id
+        ? [
+            {
+              userId: schedule.request.assignedToId,
+              title: "Collection scheduled",
+              message: `A request assigned to you is scheduled for ${schedule.collectionDate.toLocaleDateString("en-US")}.`
+            }
+          ]
+        : [])
+    ]);
+
     response.status(201).json({ schedule });
   })
 );
@@ -616,7 +669,9 @@ adminRouter.patch(
           request: {
             select: {
               id: true,
-              status: true
+              status: true,
+              userId: true,
+              assignedToId: true
             }
           }
         }
@@ -686,6 +741,23 @@ adminRouter.patch(
       return updatedSchedule;
     });
 
+    await createNotifications([
+      {
+        userId: schedule.request.userId,
+        title: "Collection rescheduled",
+        message: `Your collection is now scheduled for ${schedule.collectionDate.toLocaleDateString("en-US")}.`
+      },
+      ...(schedule.request.assignedToId && schedule.request.assignedToId !== request.user!.id
+        ? [
+            {
+              userId: schedule.request.assignedToId,
+              title: "Collection rescheduled",
+              message: `A request assigned to you is now scheduled for ${schedule.collectionDate.toLocaleDateString("en-US")}.`
+            }
+          ]
+        : [])
+    ]);
+
     response.json({ schedule });
   })
 );
@@ -704,7 +776,8 @@ adminRouter.delete(
             select: {
               id: true,
               status: true,
-              assignedToId: true
+              assignedToId: true,
+              userId: true
             }
           }
         }
@@ -773,6 +846,23 @@ adminRouter.delete(
 
       return removedSchedule;
     });
+
+    await createNotifications([
+      {
+        userId: deletedSchedule.request.userId,
+        title: "Collection schedule removed",
+        message: "A scheduled collection for your request was removed."
+      },
+      ...(deletedSchedule.request.assignedToId && deletedSchedule.request.assignedToId !== request.user!.id
+        ? [
+            {
+              userId: deletedSchedule.request.assignedToId,
+              title: "Collection schedule removed",
+              message: "A scheduled collection for a request assigned to you was removed."
+            }
+          ]
+        : [])
+    ]);
 
     response.json({ schedule: deletedSchedule });
   })

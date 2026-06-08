@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Leaf, LayoutDashboard } from "lucide-react";
+import { Bell, Leaf, LayoutDashboard } from "lucide-react";
+import { auth } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/layout/sign-out-button";
+import { getUnreadNotificationCount } from "@/lib/notifications";
 
 type AppShellProps = {
   title: string;
@@ -15,6 +17,7 @@ const residentLinks = [
   { href: "/requests/new", label: "Submit Request" },
   { href: "/requests", label: "My Requests" },
   { href: "/calendar", label: "Calendar" },
+  { href: "/notifications", label: "Notifications" },
   { href: "/profile", label: "Profile" }
 ];
 
@@ -23,11 +26,16 @@ const adminLinks = [
   { href: "/admin/requests", label: "Requests" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/schedules", label: "Schedules" },
+  { href: "/notifications", label: "Notifications" },
   { href: "/admin/analytics", label: "Analytics" }
 ];
 
-export function AppShell({ title, role, children }: AppShellProps) {
+export async function AppShell({ title, role, children }: AppShellProps) {
   const links = role === "admin" ? adminLinks : residentLinks;
+  const session = await auth();
+  const unreadCount = session?.apiToken
+    ? await getUnreadNotificationCount(session.apiToken).catch(() => 0)
+    : 0;
 
   return (
     <main className="min-h-screen bg-muted/35">
@@ -40,6 +48,16 @@ export function AppShell({ title, role, children }: AppShellProps) {
             EcoTrack
           </Link>
           <div className="flex items-center gap-3">
+            <Button asChild variant="outline" size="icon" aria-label="Notifications" className="relative">
+              <Link href="/notifications">
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-semibold text-destructive-foreground">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                ) : null}
+              </Link>
+            </Button>
             <Badge variant="secondary">{role === "admin" ? "Admin" : "Resident"}</Badge>
             <SignOutButton />
           </div>
@@ -51,7 +69,14 @@ export function AppShell({ title, role, children }: AppShellProps) {
           <nav className="grid gap-1">
             {links.map((link) => (
               <Button key={link.href} asChild variant="ghost" className="justify-start">
-                <Link href={link.href}>{link.label}</Link>
+                <Link href={link.href} className="gap-2">
+                  <span>{link.label}</span>
+                  {link.href === "/notifications" && unreadCount > 0 ? (
+                    <Badge variant="secondary" className="ml-auto">
+                      {unreadCount}
+                    </Badge>
+                  ) : null}
+                </Link>
               </Button>
             ))}
           </nav>

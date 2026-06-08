@@ -4,6 +4,7 @@ import { createWasteRequestSchema, updateWasteRequestSchema } from "@ecotrack/sh
 import { prisma } from "../../config/prisma";
 import { authenticate } from "../../middleware/authenticate";
 import { validateRequest } from "../../middleware/validate-request";
+import { createNotification, notifyActiveAdmins } from "../../services/notification.service";
 import { asyncHandler } from "../../utils/async-handler";
 import { AppError } from "../../utils/app-error";
 
@@ -73,6 +74,18 @@ requestsRouter.post(
       },
       include: requestInclude
     });
+
+    await Promise.all([
+      createNotification({
+        userId: request.user!.id,
+        title: "Request submitted",
+        message: "Your collection request was submitted and is pending review."
+      }),
+      notifyActiveAdmins(
+        "New collection request",
+        `${request.user!.name} submitted a ${request.body.wasteType.toLowerCase()} collection request.`
+      )
+    ]);
 
     response.status(201).json({ request: createdRequest });
   })

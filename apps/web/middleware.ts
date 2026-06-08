@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "./auth";
 
 const residentRoutes = ["/dashboard", "/requests", "/profile", "/calendar"];
+const sharedProtectedRoutes = ["/notifications"];
 const authRoutes = ["/login", "/register"];
 
 function isResidentRoute(pathname: string) {
@@ -15,6 +16,9 @@ export default auth((request) => {
   const isAuthRoute = authRoutes.includes(pathname);
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
   const isProtectedResidentRoute = isResidentRoute(pathname);
+  const isSharedProtectedRoute = sharedProtectedRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
 
   if (isAuthRoute && isAuthenticated) {
     const url = request.nextUrl.clone();
@@ -23,7 +27,7 @@ export default auth((request) => {
     return NextResponse.redirect(url);
   }
 
-  if ((isAdminRoute || isProtectedResidentRoute) && !isAuthenticated) {
+  if ((isAdminRoute || isProtectedResidentRoute || isSharedProtectedRoute) && !isAuthenticated) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("callbackUrl", request.nextUrl.pathname);
