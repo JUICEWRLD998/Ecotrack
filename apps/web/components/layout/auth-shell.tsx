@@ -8,9 +8,10 @@ type AuthShellProps = {
   description: string;
   footerHref: string;
   footerLabel: string;
+  children: React.ReactNode;
 };
 
-export function AuthShell({ title, description, footerHref, footerLabel }: AuthShellProps) {
+export function AuthShell({ title, description, footerHref, footerLabel, children }: AuthShellProps) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted/35 p-4">
       <Card className="w-full max-w-md">
@@ -24,7 +25,8 @@ export function AuthShell({ title, description, footerHref, footerLabel }: AuthS
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {children}
           <Button asChild variant="outline" className="w-full">
             <Link href={footerHref}>{footerLabel}</Link>
           </Button>

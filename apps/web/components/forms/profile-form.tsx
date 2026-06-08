@@ -1,0 +1,108 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { updateProfileSchema, type UpdateProfileInput } from "@ecotrack/shared";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { apiClient } from "@/lib/api-client";
+
+type ProfileFormProps = {
+  name: string;
+  email: string;
+  role: string;
+  apiToken: string;
+};
+
+type ProfileResponse = {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+};
+
+export function ProfileForm({ name, email, role, apiToken }: ProfileFormProps) {
+  const { update } = useSession();
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<UpdateProfileInput>({
+    resolver: zodResolver(updateProfileSchema),
+    defaultValues: {
+      name
+    }
+  });
+
+  const onSubmit = form.handleSubmit((values) => {
+    setMessage(null);
+    setError(null);
+
+    startTransition(async () => {
+      try {
+        const payload = await apiClient<ProfileResponse>("/users/me", {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${apiToken}`
+          },
+          body: JSON.stringify(values)
+        });
+
+        await update({ name: payload.user.name });
+        setMessage("Profile updated");
+      } catch (caughtError) {
+        const nextError = caughtError instanceof Error ? caughtError.message : "Profile update failed";
+        setError(nextError);
+      }
+    });
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Account Details</CardTitle>
+        <CardDescription>Your profile information is used for request tracking and notifications.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={onSubmit} className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="profile-name">Name</Label>
+            <Input
+              id="profile-name"
+              type="text"
+              autoComplete="name"
+              {...form.register("name")}
+              aria-invalid={Boolean(form.formState.errors.name)}
+            />
+            {form.formState.errors.name ? (
+              <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+            ) : null}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="profile-email">Email</Label>
+            <Input id="profile-email" type="email" value={email} disabled />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="profile-role">Role</Label>
+            <Input id="profile-role" type="text" value={role} disabled />
+          </div>
+
+          {message ? <p className="text-sm text-primary">{message}</p> : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+          <Button type="submit" className="w-fit" disabled={isPending}>
+            {isPending ? "Saving..." : "Save profile"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}

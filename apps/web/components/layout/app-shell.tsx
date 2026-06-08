@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Leaf, LayoutDashboard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SignOutButton } from "@/components/layout/sign-out-button";
 
 type AppShellProps = {
   title: string;
@@ -38,7 +39,10 @@ export function AppShell({ title, role, children }: AppShellProps) {
             </span>
             EcoTrack
           </Link>
-          <Badge variant="secondary">{role === "admin" ? "Admin" : "Resident"}</Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary">{role === "admin" ? "Admin" : "Resident"}</Badge>
+            <SignOutButton />
+          </div>
         </div>
       </header>
 
