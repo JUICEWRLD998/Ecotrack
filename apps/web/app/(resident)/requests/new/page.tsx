@@ -1,13 +1,18 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { RequestForm } from "@/components/forms/request-form";
 import { AppShell } from "@/components/layout/app-shell";
-import { EmptyState } from "@/components/layout/empty-state";
 
-export default function NewRequestPage() {
+export default async function NewRequestPage() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   return (
     <AppShell title="Submit Request" role="resident">
-      <EmptyState
-        title="Submit a waste collection request"
-        description="Request details and image upload will be available here."
-      />
+      <RequestForm apiToken={session.apiToken} />
     </AppShell>
   );
 }
