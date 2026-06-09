@@ -176,20 +176,20 @@ export default async function AdminDashboardPage() {
 
         {/* Main Content Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Recent Requests - Takes 2 columns */}
+          {/* Recent Requests - Takes 2 columns on desktop */}
           <Card className="border-border shadow-lg lg:col-span-2">
-            <CardHeader>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl sm:text-2xl">Recent Requests</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">Recent Requests</CardTitle>
                   <CardDescription className="mt-1">
                     Latest waste collection submissions
                   </CardDescription>
                 </div>
-                <Button asChild variant="outline" className="gap-2 shadow-sm">
+                <Button asChild variant="outline" size="sm" className="shrink-0 gap-1.5 shadow-sm">
                   <Link href="/admin/requests">
                     View All
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </Button>
               </div>
@@ -201,52 +201,54 @@ export default async function AdminDashboardPage() {
                     <Link
                       key={request.id}
                       href={`/admin/requests/${request.id}`}
-                      className="group flex flex-col gap-4 rounded-xl border-2 border-border bg-card p-4 transition-all hover:border-primary/30 hover:shadow-md"
+                      className="group flex items-start gap-3 rounded-xl border-2 border-border bg-card p-3 transition-all hover:border-primary/30 hover:shadow-md sm:gap-4 sm:p-4"
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                          <Package className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="min-w-0 flex-1 space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-semibold text-foreground">{formatWasteType(request.wasteType)}</p>
-                            <Badge
-                              variant={
-                                request.status === "COLLECTED"
-                                  ? "default"
-                                  : request.status === "PENDING"
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                              className="text-xs"
-                            >
-                              {formatRequestStatus(request.status)}
-                            </Badge>
-                          </div>
-                          <p className="truncate text-sm text-muted-foreground">{request.address}</p>
-                          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <UserCircle className="h-3 w-3" />
-                              {request.user.name}
-                            </span>
-                            {request.assignedTo && (
-                              <span className="flex items-center gap-1">
-                                <UserCheck className="h-3 w-3" />
-                                {request.assignedTo.name}
-                              </span>
-                            )}
-                            <span>{formatDate(getRequestCollectionDate(request))}</span>
-                          </div>
-                        </div>
-                        <ArrowRight className="hidden h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary sm:block" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 sm:h-12 sm:w-12">
+                        <Package className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
                       </div>
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-foreground sm:text-base">
+                            {formatWasteType(request.wasteType)}
+                          </p>
+                          <Badge
+                            variant={
+                              request.status === "COLLECTED"
+                                ? "default"
+                                : request.status === "PENDING"
+                                ? "secondary"
+                                : "outline"
+                            }
+                            className="text-xs"
+                          >
+                            {formatRequestStatus(request.status)}
+                          </Badge>
+                        </div>
+                        <p className="truncate text-xs text-muted-foreground sm:text-sm">
+                          {request.address}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <UserCircle className="h-3 w-3 shrink-0" />
+                            <span className="truncate max-w-[120px]">{request.user.name}</span>
+                          </span>
+                          {request.assignedTo && (
+                            <span className="flex items-center gap-1">
+                              <UserCheck className="h-3 w-3 shrink-0" />
+                              <span className="truncate max-w-[120px]">{request.assignedTo.name}</span>
+                            </span>
+                          )}
+                          <span className="shrink-0">{formatDate(getRequestCollectionDate(request))}</span>
+                        </div>
+                      </div>
+                      <ArrowRight className="mt-1 hidden h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary sm:block" />
                     </Link>
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 p-12 text-center">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                    <ClipboardList className="h-8 w-8 text-muted-foreground" />
+                <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/30 p-10 text-center">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                    <ClipboardList className="h-7 w-7 text-muted-foreground" />
                   </div>
                   <p className="text-sm text-muted-foreground">No collection requests yet</p>
                 </div>
@@ -254,46 +256,46 @@ export default async function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Statistics Sidebar */}
-          <Card className="border-border shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Distribution</CardTitle>
-              <CardDescription>Request breakdown</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* By Status */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-foreground">By Status</h3>
-                <div className="space-y-2">
-                  {overview.statusDistribution.map((entry) => (
-                    <div
-                      key={entry.status}
-                      className="flex items-center justify-between rounded-lg bg-muted p-3"
-                    >
-                      <span className="text-sm text-foreground">{formatRequestStatus(entry.status)}</span>
-                      <span className="font-semibold text-foreground">{entry.count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {/* Distribution — side by side on mobile, stacked on desktop sidebar */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-1 lg:gap-6">
+            <Card className="border-border shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg">By Status</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {overview.statusDistribution.map((entry) => (
+                  <div
+                    key={entry.status}
+                    className="flex items-center justify-between rounded-lg bg-muted px-3 py-2"
+                  >
+                    <span className="text-xs font-medium text-foreground sm:text-sm">
+                      {formatRequestStatus(entry.status)}
+                    </span>
+                    <span className="text-sm font-bold text-foreground">{entry.count}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-              {/* By Waste Type */}
-              <div className="space-y-3 border-t border-border pt-6">
-                <h3 className="text-sm font-semibold text-foreground">By Waste Type</h3>
-                <div className="space-y-2">
-                  {overview.wasteTypeDistribution.map((entry) => (
-                    <div
-                      key={entry.wasteType}
-                      className="flex items-center justify-between rounded-lg bg-muted p-3"
-                    >
-                      <span className="text-sm text-foreground">{formatWasteType(entry.wasteType)}</span>
-                      <span className="font-semibold text-foreground">{entry.count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="border-border shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg">By Waste Type</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {overview.wasteTypeDistribution.map((entry) => (
+                  <div
+                    key={entry.wasteType}
+                    className="flex items-center justify-between rounded-lg bg-muted px-3 py-2"
+                  >
+                    <span className="text-xs font-medium text-foreground sm:text-sm">
+                      {formatWasteType(entry.wasteType)}
+                    </span>
+                    <span className="text-sm font-bold text-foreground">{entry.count}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AppShell>
