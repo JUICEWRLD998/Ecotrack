@@ -17,19 +17,16 @@ export async function loginAction(_prevState: unknown, formData: FormData) {
   try {
     const data = await loginUser(result.data);
     await createSession({ user: data.user, apiToken: data.token });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Login error:", error);
-    
-    // Better error messages
-    if (error?.message?.includes("credentials") || error?.message?.includes("password") || error?.message?.includes("not found")) {
+    const msg = error instanceof Error ? error.message : "";
+    if (msg.includes("credentials") || msg.includes("password") || msg.includes("not found")) {
       return { error: "Invalid email or password. Please try again." };
     }
-    
-    if (error?.message?.includes("database") || error?.message?.includes("connection")) {
+    if (msg.includes("database") || msg.includes("connection")) {
       return { error: "Database connection issue. Please try again in a moment." };
     }
-    
-    return { error: error?.message || "Unable to sign in. Please try again." };
+    return { error: msg || "Unable to sign in. Please try again." };
   }
 
   // Role-based redirect — read session to decide
@@ -52,19 +49,16 @@ export async function registerAction(_prevState: unknown, formData: FormData) {
   try {
     const data = await registerUser(result.data);
     await createSession({ user: data.user, apiToken: data.token });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Registration error:", error);
-    
-    // Better error messages
-    if (error?.message?.includes("unique") || error?.message?.includes("already exists")) {
+    const msg = error instanceof Error ? error.message : "";
+    if (msg.includes("unique") || msg.includes("already exists")) {
       return { error: "This email is already registered. Try logging in instead." };
     }
-    
-    if (error?.message?.includes("database") || error?.message?.includes("connection")) {
+    if (msg.includes("database") || msg.includes("connection")) {
       return { error: "Database connection issue. Please try again in a moment." };
     }
-    
-    return { error: error?.message || "Unable to create account. Please try again." };
+    return { error: msg || "Unable to create account. Please try again." };
   }
 
   redirect("/dashboard");
@@ -91,18 +85,16 @@ export async function registerAdminAction(_prevState: unknown, formData: FormDat
   try {
     const data = await registerUser(result.data, "ADMIN");
     await createSession({ user: data.user, apiToken: data.token });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Admin registration error:", error);
-
-    if (error?.message?.includes("unique") || error?.message?.includes("already exists")) {
+    const msg = error instanceof Error ? error.message : "";
+    if (msg.includes("unique") || msg.includes("already exists")) {
       return { error: "This email is already registered. Try logging in instead." };
     }
-
-    if (error?.message?.includes("database") || error?.message?.includes("connection")) {
+    if (msg.includes("database") || msg.includes("connection")) {
       return { error: "Database connection issue. Please try again in a moment." };
     }
-
-    return { error: error?.message || "Unable to create admin account. Please try again." };
+    return { error: msg || "Unable to create admin account. Please try again." };
   }
 
   redirect("/admin");

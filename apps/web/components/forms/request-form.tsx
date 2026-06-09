@@ -246,11 +246,11 @@ export function RequestForm({ apiToken }: RequestFormProps) {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span>We'll schedule a collection date</span>
+                <span>We&apos;ll schedule a collection date</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">•</span>
-                <span>You'll receive updates via notifications</span>
+                <span>You&apos;ll receive updates via notifications</span>
               </li>
             </ul>
           </div>

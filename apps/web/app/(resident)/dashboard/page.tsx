@@ -49,7 +49,7 @@ export default async function ResidentDashboardPage() {
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
             Welcome back, {session.user.name?.split(" ")[0] || "User"}!
           </h2>
-          <p className="text-muted-foreground">Here's what's happening with your waste collection</p>
+          <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your waste collection</p>
         </div>
 
         {/* Metrics Grid */}
@@ -129,7 +129,7 @@ export default async function ResidentDashboardPage() {
               <div className="space-y-2">
                 <h3 className="text-xl font-bold text-white sm:text-2xl">Need waste collection?</h3>
                 <p className="text-sm text-emerald-50 sm:text-base">
-                  Submit a new request and we'll schedule your pickup within 24 hours
+                  Submit a new request and we&apos;ll schedule your pickup within 24 hours
                 </p>
                 {nextCollection && (
                   <div className="flex items-center gap-2 text-sm text-emerald-100">
@@ -219,7 +219,7 @@ export default async function ResidentDashboardPage() {
                 </div>
                 <h3 className="mb-2 text-lg font-semibold text-foreground">No requests yet</h3>
                 <p className="mb-6 max-w-sm text-sm text-muted-foreground">
-                  Start by submitting your first waste collection request. We'll take care of the rest!
+                  Start by submitting your first waste collection request. We&apos;ll take care of the rest!
                 </p>
                 <Button asChild size="lg" className="gap-2 shadow-md">
                   <Link href="/requests/new">

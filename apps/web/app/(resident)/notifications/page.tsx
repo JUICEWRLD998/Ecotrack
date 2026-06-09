@@ -32,7 +32,6 @@ export default async function NotificationsPage() {
   }
   
   const shellRole = session.user.role === "ADMIN" ? "admin" : "resident";
-  const readCount = notifications.length - unreadCount;
 
   return (
     <AppShell title="Notifications" role={shellRole}>

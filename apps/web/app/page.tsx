@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Leaf, Moon, Recycle, ShieldCheck, Sparkles, Sun } from "lucide-react";
+import { ArrowRight, CalendarDays, Leaf, Moon, Recycle, ShieldCheck, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTheme } from "@/components/providers/theme-provider";
