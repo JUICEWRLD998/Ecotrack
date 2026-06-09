@@ -13,9 +13,13 @@ function LoginPageContent() {
   return (
     <AuthShell
       title={isAdmin ? "Admin Login" : "Welcome Back"}
-      description={isAdmin ? "Access the admin dashboard" : "Sign in to your resident account"}
-      footerHref="/register"
-      footerLabel="Create an account"
+      description={
+        isAdmin
+          ? "Sign in to access the admin dashboard"
+          : "Sign in to your resident account"
+      }
+      footerHref={isAdmin ? "/admin-register" : "/register"}
+      footerLabel={isAdmin ? "Create an admin account" : "Create a resident account"}
       role={isAdmin ? "admin" : "resident"}
     >
       <LoginForm />

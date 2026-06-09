@@ -719,49 +719,48 @@ adminRouter.post(
         throw new AppError("Request not found", 404);
       }
 
-      const createdSchedule = await tx.collectionSchedule.create({
-        data: {
-          requestId: wasteRequest.id,
-          collectionDate: request.body.collectionDate,
-          notes: request.body.notes
-        },
-        include: scheduleInclude
-      });
-
       const nextStatus = wasteRequest.status === "COLLECTED" ? wasteRequest.status : "SCHEDULED";
 
-      await tx.wasteRequest.update({
-        where: {
-          id: wasteRequest.id
-        },
-        data: {
-          scheduledDate: request.body.collectionDate,
-          status: nextStatus,
-          statusHistory: {
-            create: {
-              status: nextStatus,
-              note: `Collection scheduled for ${request.body.collectionDate.toISOString()}`,
-              changedById: request.user!.id
+      // Run schedule creation, request update, and audit log in parallel
+      const [createdSchedule] = await Promise.all([
+        tx.collectionSchedule.create({
+          data: {
+            requestId: wasteRequest.id,
+            collectionDate: request.body.collectionDate,
+            notes: request.body.notes
+          },
+          include: scheduleInclude
+        }),
+        tx.wasteRequest.update({
+          where: { id: wasteRequest.id },
+          data: {
+            scheduledDate: request.body.collectionDate,
+            status: nextStatus,
+            statusHistory: {
+              create: {
+                status: nextStatus,
+                note: `Collection scheduled for ${request.body.collectionDate.toISOString()}`,
+                changedById: request.user!.id
+              }
             }
           }
-        }
-      });
-
-      await tx.auditLog.create({
-        data: {
-          actorId: request.user!.id,
-          action: "SCHEDULE_CREATED",
-          entity: "CollectionSchedule",
-          entityId: createdSchedule.id,
-          metadata: {
-            requestId: wasteRequest.id,
-            collectionDate: request.body.collectionDate.toISOString()
+        }),
+        tx.auditLog.create({
+          data: {
+            actorId: request.user!.id,
+            action: "SCHEDULE_CREATED",
+            entity: "CollectionSchedule",
+            entityId: wasteRequest.id,
+            metadata: {
+              requestId: wasteRequest.id,
+              collectionDate: request.body.collectionDate.toISOString()
+            }
           }
-        }
-      });
+        })
+      ]);
 
       return createdSchedule;
-    });
+    }, { timeout: 15000 });
 
     await createNotifications([
       {
@@ -809,65 +808,51 @@ adminRouter.patch(
         throw new AppError("Schedule not found", 404);
       }
 
-      const updatedSchedule = await tx.collectionSchedule.update({
-        where: {
-          id: existingSchedule.id
-        },
-        data: {
-          collectionDate: request.body.collectionDate,
-          notes: request.body.notes
-        },
-        include: scheduleInclude
-      });
-
-      const primarySchedule = await tx.collectionSchedule.findFirst({
-        where: {
-          requestId: existingSchedule.requestId
-        },
-        orderBy: {
-          collectionDate: "asc"
-        },
-        select: {
-          collectionDate: true
-        }
-      });
-
       const nextStatus = existingSchedule.request.status === "COLLECTED" ? "COLLECTED" : "SCHEDULED";
+      const newCollectionDate = request.body.collectionDate ?? existingSchedule.collectionDate;
 
-      await tx.wasteRequest.update({
-        where: {
-          id: existingSchedule.requestId
-        },
-        data: {
-          scheduledDate: primarySchedule?.collectionDate ?? updatedSchedule.collectionDate,
-          status: nextStatus,
-          statusHistory: request.body.collectionDate
-            ? {
-                create: {
-                  status: nextStatus,
-                  note: `Collection rescheduled for ${request.body.collectionDate.toISOString()}`,
-                  changedById: request.user!.id
+      // Run update, request update, and audit log in parallel
+      const [updatedSchedule] = await Promise.all([
+        tx.collectionSchedule.update({
+          where: { id: existingSchedule.id },
+          data: {
+            collectionDate: request.body.collectionDate,
+            notes: request.body.notes
+          },
+          include: scheduleInclude
+        }),
+        tx.wasteRequest.update({
+          where: { id: existingSchedule.requestId },
+          data: {
+            scheduledDate: newCollectionDate,
+            status: nextStatus,
+            statusHistory: request.body.collectionDate
+              ? {
+                  create: {
+                    status: nextStatus,
+                    note: `Collection rescheduled for ${request.body.collectionDate.toISOString()}`,
+                    changedById: request.user!.id
+                  }
                 }
-              }
-            : undefined
-        }
-      });
-
-      await tx.auditLog.create({
-        data: {
-          actorId: request.user!.id,
-          action: "SCHEDULE_UPDATED",
-          entity: "CollectionSchedule",
-          entityId: existingSchedule.id,
-          metadata: {
-            requestId: existingSchedule.requestId,
-            collectionDate: updatedSchedule.collectionDate.toISOString()
+              : undefined
           }
-        }
-      });
+        }),
+        tx.auditLog.create({
+          data: {
+            actorId: request.user!.id,
+            action: "SCHEDULE_UPDATED",
+            entity: "CollectionSchedule",
+            entityId: existingSchedule.id,
+            metadata: {
+              requestId: existingSchedule.requestId,
+              collectionDate: newCollectionDate.toISOString()
+            }
+          }
+        })
+      ]);
 
       return updatedSchedule;
-    });
+    }, { timeout: 15000 });
 
     await createNotifications([
       {

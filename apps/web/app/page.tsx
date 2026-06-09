@@ -99,7 +99,7 @@ export default function HomePage() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg">
-                  <Link href="/login">Admin Access</Link>
+                  <Link href="/login?callbackUrl=/admin">Admin Access</Link>
                 </Button>
               </div>
 

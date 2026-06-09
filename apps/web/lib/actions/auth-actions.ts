@@ -70,6 +70,44 @@ export async function registerAction(_prevState: unknown, formData: FormData) {
   redirect("/dashboard");
 }
 
+export async function registerAdminAction(_prevState: unknown, formData: FormData) {
+  const name = formData.get("name") as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+  const inviteCode = formData.get("inviteCode") as string;
+
+  // Validate invite code
+  const validCode = process.env.ADMIN_INVITE_CODE ?? "ecotrack-admin-2026";
+  if (!inviteCode || inviteCode.trim() !== validCode.trim()) {
+    return { error: "Invalid admin invite code. Please check with your system administrator." };
+  }
+
+  const result = registerSchema.safeParse({ name, email, password });
+  if (!result.success) {
+    const errors = result.error.flatten().fieldErrors;
+    return { error: Object.values(errors).flat()[0] || "Please check your input" };
+  }
+
+  try {
+    const data = await registerUser(result.data, "ADMIN");
+    await createSession({ user: data.user, apiToken: data.token });
+  } catch (error: any) {
+    console.error("Admin registration error:", error);
+
+    if (error?.message?.includes("unique") || error?.message?.includes("already exists")) {
+      return { error: "This email is already registered. Try logging in instead." };
+    }
+
+    if (error?.message?.includes("database") || error?.message?.includes("connection")) {
+      return { error: "Database connection issue. Please try again in a moment." };
+    }
+
+    return { error: error?.message || "Unable to create admin account. Please try again." };
+  }
+
+  redirect("/admin");
+}
+
 export async function logoutAction() {
   await deleteSession();
   redirect("/login");

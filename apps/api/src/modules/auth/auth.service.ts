@@ -21,7 +21,7 @@ function toAuthUser(user: {
   };
 }
 
-export async function registerUser(input: RegisterInput) {
+export async function registerUser(input: RegisterInput, role: "RESIDENT" | "ADMIN" = "RESIDENT") {
   const existingUser = await prisma.user.findUnique({
     where: { email: input.email },
     select: { id: true }
@@ -37,7 +37,8 @@ export async function registerUser(input: RegisterInput) {
       data: {
         name: input.name,
         email: input.email,
-        password
+        password,
+        role
       },
       select: {
         id: true,
@@ -51,7 +52,9 @@ export async function registerUser(input: RegisterInput) {
       data: {
         userId: createdUser.id,
         title: "Welcome to EcoTrack",
-        message: "Your account is ready. Submit a collection request when your bin needs pickup."
+        message: role === "ADMIN"
+          ? "Admin account created. You can now manage requests, schedules, and users."
+          : "Your account is ready. Submit a collection request when your bin needs pickup."
       }
     });
 
