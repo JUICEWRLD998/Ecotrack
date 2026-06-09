@@ -73,11 +73,6 @@ export default function HomePage() {
           {/* Hero Content */}
           <section className="flex min-h-[600px] flex-col justify-center py-20">
             <div className="mx-auto max-w-4xl text-center space-y-8">
-              <div className="inline-flex items-center gap-2 rounded-full border bg-white/50 px-4 py-1.5 text-sm shadow-sm backdrop-blur-sm dark:bg-slate-900/50">
-                <Sparkles className="h-4 w-4 text-green-600" />
-                <span>Modern Waste Management</span>
-              </div>
-              
               <h1 className="text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
                 Smarter Waste
                 <br />
