@@ -19,7 +19,18 @@ export default async function NotificationsPage() {
     redirect("/login");
   }
 
-  const { notifications, unreadCount } = await getNotifications(session.apiToken);
+  let notifications = [];
+  let unreadCount = 0;
+  
+  try {
+    const result = await getNotifications(session.apiToken);
+    notifications = result.notifications;
+    unreadCount = result.unreadCount;
+  } catch (error) {
+    console.error("Failed to load notifications:", error);
+    // Return empty state instead of crashing
+  }
+  
   const shellRole = session.user.role === "ADMIN" ? "admin" : "resident";
   const readCount = notifications.length - unreadCount;
 

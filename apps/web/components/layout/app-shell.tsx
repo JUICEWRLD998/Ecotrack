@@ -131,7 +131,7 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : isActive
                     ? "bg-accent text-accent-foreground"
-                    : "text-foreground hover:bg-accent"
+                    : "text-foreground hover:bg-muted/50"
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />

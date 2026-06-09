@@ -11,14 +11,25 @@ export async function loginAction(_prevState: unknown, formData: FormData) {
 
   const result = loginSchema.safeParse({ email, password });
   if (!result.success) {
-    return { error: "Invalid email or password" };
+    return { error: "Please enter a valid email and password" };
   }
 
   try {
     const data = await loginUser(result.data);
     await createSession({ user: data.user, apiToken: data.token });
   } catch (error: any) {
-    return { error: error?.message || "Invalid email or password" };
+    console.error("Login error:", error);
+    
+    // Better error messages
+    if (error?.message?.includes("credentials") || error?.message?.includes("password") || error?.message?.includes("not found")) {
+      return { error: "Invalid email or password. Please try again." };
+    }
+    
+    if (error?.message?.includes("database") || error?.message?.includes("connection")) {
+      return { error: "Database connection issue. Please try again in a moment." };
+    }
+    
+    return { error: error?.message || "Unable to sign in. Please try again." };
   }
 
   // Role-based redirect — read session to decide
@@ -35,14 +46,25 @@ export async function registerAction(_prevState: unknown, formData: FormData) {
   const result = registerSchema.safeParse({ name, email, password });
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors;
-    return { error: Object.values(errors).flat()[0] || "Validation failed" };
+    return { error: Object.values(errors).flat()[0] || "Please check your input" };
   }
 
   try {
     const data = await registerUser(result.data);
     await createSession({ user: data.user, apiToken: data.token });
   } catch (error: any) {
-    return { error: error?.message || "Registration failed" };
+    console.error("Registration error:", error);
+    
+    // Better error messages
+    if (error?.message?.includes("unique") || error?.message?.includes("already exists")) {
+      return { error: "This email is already registered. Try logging in instead." };
+    }
+    
+    if (error?.message?.includes("database") || error?.message?.includes("connection")) {
+      return { error: "Database connection issue. Please try again in a moment." };
+    }
+    
+    return { error: error?.message || "Unable to create account. Please try again." };
   }
 
   redirect("/dashboard");

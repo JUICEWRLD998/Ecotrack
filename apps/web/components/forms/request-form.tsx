@@ -217,7 +217,7 @@ export function RequestForm({ apiToken }: RequestFormProps) {
                     id="image" 
                     type="file" 
                     accept="image/*" 
-                    className="h-11 border-2 pl-11 file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90" 
+                    className="h-11 border-2 pl-11 file:mr-4 file:rounded-md file:border-0 file:bg-muted file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-foreground hover:file:bg-muted/80" 
                     {...form.register("image")} 
                   />
                 </div>
