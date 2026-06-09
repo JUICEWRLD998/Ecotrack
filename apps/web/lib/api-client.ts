@@ -2,18 +2,23 @@
 // All requests go to /api/backend/* which is handled by Next.js API routes
 
 function getApiBaseUrl() {
-  // In the browser, use relative URLs
+  // In the browser, use relative URLs — no absolute URL needed
   if (typeof window !== "undefined") {
     return "/api/backend";
   }
 
-  // On the server, use the full URL
-  const deploymentUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL;
-  if (deploymentUrl) {
-    return `${deploymentUrl}/api/backend`;
+  // On the server (SSR / Server Actions), we need a full absolute URL.
+  // NEXTAUTH_URL is set manually and always includes https://.
+  if (process.env.NEXTAUTH_URL) {
+    return `${process.env.NEXTAUTH_URL}/api/backend`;
   }
 
-  // Fallback for local server-side rendering
+  // VERCEL_URL is auto-injected by Vercel but WITHOUT the https:// scheme.
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/backend`;
+  }
+
+  // Local development fallback
   return "http://localhost:3000/api/backend";
 }
 
