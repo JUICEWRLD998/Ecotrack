@@ -86,14 +86,16 @@ export default async function RequestDetailsPage({ params }: RequestDetailsPageP
               {request.imageUrl ? (
                 <div className="space-y-2">
                   <h2 className="text-sm font-medium">Uploaded Image</h2>
-                  <Image
-                    src={request.imageUrl}
-                    alt="Submitted waste collection request"
-                    width={1200}
-                    height={675}
-                    sizes="(min-width: 1280px) 760px, 100vw"
-                    className="aspect-video w-full rounded-md border object-cover"
-                  />
+                  <div className="relative w-full max-w-md">
+                    <Image
+                      src={request.imageUrl}
+                      alt="Submitted waste collection request"
+                      width={600}
+                      height={400}
+                      sizes="(min-width: 1280px) 400px, (min-width: 768px) 600px, 100vw"
+                      className="w-full rounded-lg border-2 border-border object-cover shadow-sm"
+                    />
+                  </div>
                 </div>
               ) : null}
             </CardContent>

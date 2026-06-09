@@ -50,32 +50,64 @@ export function ProfileForm({ name, email, role, apiToken }: ProfileFormProps) {
   });
 
   return (
-    <Card>
+    <Card className="border-border shadow-md">
       <CardHeader>
-        <CardTitle>Account Details</CardTitle>
-        <CardDescription>Your profile information for request tracking and notifications.</CardDescription>
+        <CardTitle className="text-2xl">Account Details</CardTitle>
+        <CardDescription>Manage your profile information and account settings</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="profile-name">Name</Label>
-            <Input id="profile-name" type="text" autoComplete="name" {...form.register("name")} />
+        <form onSubmit={onSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="profile-name" className="text-base font-semibold">Full Name</Label>
+            <Input 
+              id="profile-name" 
+              type="text" 
+              autoComplete="name" 
+              className="h-11 border-2" 
+              placeholder="Enter your full name"
+              {...form.register("name")} 
+            />
             {form.formState.errors.name && (
-              <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+              <p className="text-sm font-medium text-destructive">{form.formState.errors.name.message}</p>
             )}
           </div>
-          <div className="grid gap-2">
-            <Label>Email</Label>
-            <Input type="email" value={email} disabled />
+          
+          <div className="space-y-2">
+            <Label className="text-base font-semibold">Email Address</Label>
+            <Input 
+              type="email" 
+              value={email} 
+              disabled 
+              className="h-11 border-2 bg-muted cursor-not-allowed" 
+            />
+            <p className="text-xs text-muted-foreground">Email cannot be changed</p>
           </div>
-          <div className="grid gap-2">
-            <Label>Role</Label>
-            <Input type="text" value={role} disabled />
+          
+          <div className="space-y-2">
+            <Label className="text-base font-semibold">Account Role</Label>
+            <Input 
+              type="text" 
+              value={role} 
+              disabled 
+              className="h-11 border-2 bg-muted cursor-not-allowed" 
+            />
+            <p className="text-xs text-muted-foreground">Role is assigned by administrators</p>
           </div>
-          {message && <p className="text-sm text-green-600">{message}</p>}
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-fit" disabled={isPending}>
-            {isPending ? "Saving..." : "Save profile"}
+          
+          {message && (
+            <div className="rounded-lg border-2 border-emerald-500/50 bg-emerald-500/10 p-4">
+              <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{message}</p>
+            </div>
+          )}
+          
+          {error && (
+            <div className="rounded-lg border-2 border-destructive/50 bg-destructive/10 p-4">
+              <p className="text-sm font-medium text-destructive">{error}</p>
+            </div>
+          )}
+          
+          <Button type="submit" className="h-11 px-8 font-semibold shadow-md" disabled={isPending} size="lg">
+            {isPending ? "Saving Changes..." : "Save Changes"}
           </Button>
         </form>
       </CardContent>

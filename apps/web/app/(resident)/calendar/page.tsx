@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CalendarDays } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { ScheduleCalendar } from "@/components/calendar/schedule-calendar";
 import { AppShell } from "@/components/layout/app-shell-server";
-import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,44 +36,73 @@ export default async function ResidentCalendarPage({ searchParams }: ResidentCal
 
   return (
     <AppShell title="Collection Calendar" role="resident">
-      {schedules.length > 0 ? (
-        <>
-          <ScheduleCalendar title="Scheduled Collections" events={events} month={month} basePath="/calendar" />
+      <div className="space-y-6">
+        {schedules.length > 0 ? (
+          <>
+            <ScheduleCalendar title="Scheduled Collections" events={events} month={month} basePath="/calendar" />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Collections</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="divide-y rounded-md border">
-                {schedules.map((schedule) => (
-                  <div
-                    key={schedule.id}
-                    className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium">{formatWasteType(schedule.request.wasteType)}</p>
-                        <Badge variant="secondary">{formatRequestStatus(schedule.request.status)}</Badge>
+            <Card className="border-border shadow-md">
+              <CardHeader>
+                <CardTitle className="text-2xl">Upcoming Collections</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {schedules.map((schedule) => (
+                    <div
+                      key={schedule.id}
+                      className="flex flex-col gap-4 rounded-xl border-2 border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-md md:flex-row md:items-center md:justify-between"
+                    >
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <p className="font-semibold text-foreground">{formatWasteType(schedule.request.wasteType)}</p>
+                          <Badge
+                            variant={
+                              schedule.request.status === "COLLECTED"
+                                ? "default"
+                                : schedule.request.status === "PENDING"
+                                ? "secondary"
+                                : "outline"
+                            }
+                            className="shadow-sm"
+                          >
+                            {formatRequestStatus(schedule.request.status)}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{schedule.request.address}</p>
+                        {schedule.notes ? (
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-medium text-foreground">Notes:</span> {schedule.notes}
+                          </p>
+                        ) : null}
                       </div>
-                      <p className="truncate text-sm text-muted-foreground">{schedule.request.address}</p>
-                      {schedule.notes ? (
-                        <p className="text-sm text-muted-foreground">Notes: {schedule.notes}</p>
-                      ) : null}
+                      <div className="flex items-center gap-4">
+                        <p className="text-sm font-semibold text-foreground whitespace-nowrap">{formatDate(schedule.collectionDate)}</p>
+                        <Button asChild variant="outline" className="shadow-sm">
+                          <Link href={`/requests/${schedule.request.id}`}>View Details</Link>
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{formatDate(schedule.collectionDate)}</p>
-                    <Button asChild variant="outline">
-                      <Link href={`/requests/${schedule.request.id}`}>View Request</Link>
-                    </Button>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <Card className="border-border shadow-md">
+            <CardContent className="py-12">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                  <CalendarDays className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">No scheduled collections</h3>
+                <p className="max-w-md text-sm text-muted-foreground">
+                  Scheduled collection dates will appear here once your requests are approved and scheduled.
+                </p>
               </div>
             </CardContent>
           </Card>
-        </>
-      ) : (
-        <EmptyState title="No scheduled collections" description="Scheduled collection dates will appear here." />
-      )}
+        )}
+      </div>
     </AppShell>
   );
 }

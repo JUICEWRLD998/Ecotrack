@@ -1,13 +1,16 @@
 "use client";
 
+import { ThemeProvider } from "./theme-provider";
 import { ToastProvider } from "./toast-provider";
 import { ErrorBoundaryProvider } from "./error-boundary-provider";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundaryProvider>
-      {children}
-      <ToastProvider />
+      <ThemeProvider>
+        {children}
+        <ToastProvider />
+      </ThemeProvider>
     </ErrorBoundaryProvider>
   );
 }

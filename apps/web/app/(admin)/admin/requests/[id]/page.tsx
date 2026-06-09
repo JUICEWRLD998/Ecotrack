@@ -110,13 +110,16 @@ export default async function AdminRequestDetailsPage({ params }: AdminRequestDe
               {request.imageUrl ? (
                 <div className="space-y-2">
                   <h2 className="text-sm font-medium">Uploaded Image</h2>
-                  <Image
-                    src={request.imageUrl}
-                    alt="Submitted waste collection request"
-                    width={960}
-                    height={540}
-                    className="aspect-video w-full rounded-md border object-cover"
-                  />
+                  <div className="relative w-full max-w-md">
+                    <Image
+                      src={request.imageUrl}
+                      alt="Submitted waste collection request"
+                      width={600}
+                      height={400}
+                      sizes="(min-width: 1280px) 400px, (min-width: 768px) 600px, 100vw"
+                      className="w-full rounded-lg border-2 border-border object-cover shadow-sm"
+                    />
+                  </div>
                 </div>
               ) : null}
             </CardContent>

@@ -16,12 +16,15 @@ import {
   Users,
   BarChart3,
   ClipboardList,
-  LogOut
+  LogOut,
+  Moon,
+  Sun
 } from "lucide-react";
 import { logoutAction } from "@/lib/actions/auth-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/providers/theme-provider";
 
 export type AppShellClientProps = {
   title: string;
@@ -33,7 +36,7 @@ export type AppShellClientProps = {
 
 const residentLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/requests/new", label: "Submit Request", icon: Plus },
+  { href: "/requests/new", label: "Submit Request", icon: Plus, highlight: true },
   { href: "/requests", label: "My Requests", icon: FileText },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/notifications", label: "Notifications", icon: Bell },
@@ -52,6 +55,7 @@ const adminLinks = [
 export function AppShellClient({ title, role, children, unreadCount = 0, userName }: AppShellClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const links = role === "admin" ? adminLinks : residentLinks;
 
   const handleSignOut = async () => {
@@ -59,7 +63,7 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -71,17 +75,17 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col transform border-r border-border bg-card transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between border-b px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-600">
-              <Leaf className="h-5 w-5 text-white" />
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-6">
+          <Link href="/" className="flex items-center gap-3 font-bold text-foreground transition-opacity hover:opacity-80">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg">
+              <Leaf className="h-6 w-6 text-white" />
             </div>
-            <span className="text-lg">EcoTrack</span>
+            <span className="text-xl">EcoTrack</span>
           </Link>
           <Button
             variant="ghost"
@@ -94,21 +98,27 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
         </div>
 
         {/* Role badge */}
-        <div className="border-b px-6 py-4">
+        <div className="shrink-0 border-b border-border px-6 py-4">
           <Badge
             variant={role === "admin" ? "default" : "secondary"}
-            className="w-full justify-center py-1.5"
+            className={cn(
+              "w-full justify-center py-2 text-xs font-semibold",
+              role === "admin" 
+                ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700" 
+                : "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700"
+            )}
           >
             {role === "admin" ? "Admin Portal" : "Resident Portal"}
           </Badge>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 p-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-4">
           {links.map((link) => {
             const isActive = pathname === link.href || pathname?.startsWith(link.href + "/");
             const Icon = link.icon;
             const showBadge = link.href === "/notifications" && unreadCount > 0;
+            const isHighlight = 'highlight' in link && link.highlight;
 
             return (
               <Link
@@ -116,16 +126,18 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
                 href={link.href}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-green-50 text-green-700"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
+                  isActive && isHighlight
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "text-foreground hover:bg-accent"
                 )}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 shrink-0" />
                 <span className="flex-1">{link.label}</span>
                 {showBadge && (
-                  <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs">
+                  <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs font-bold shadow-sm">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </Badge>
                 )}
@@ -134,24 +146,27 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
           })}
         </nav>
 
-        {/* User section */}
-        <div className="border-t p-4">
-          <div className="mb-3 flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-sm font-semibold text-white">
+        {/* Bottom section - User & Sign Out */}
+        <div className="shrink-0 border-t border-border p-4 space-y-3">
+          {/* User info */}
+          <div className="flex items-center gap-3 rounded-xl bg-muted px-4 py-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-sm font-bold text-white shadow-md">
               {userName?.charAt(0).toUpperCase() || "U"}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-gray-900">{userName || "User"}</p>
-              <p className="text-xs text-gray-500">{role === "admin" ? "Administrator" : "Resident"}</p>
+              <p className="truncate text-sm font-semibold text-foreground">{userName || "User"}</p>
+              <p className="text-xs text-muted-foreground">{role === "admin" ? "Administrator" : "Resident"}</p>
             </div>
           </div>
+          
+          {/* Sign out button */}
           <Button
             variant="outline"
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-3 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all"
             onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4" />
-            Sign Out
+            <span className="font-medium">Sign Out</span>
           </Button>
         </div>
       </aside>
@@ -159,32 +174,51 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex h-16 items-center justify-between border-b bg-white px-4 shadow-sm lg:px-6">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-4 shadow-sm lg:px-6">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="lg:hidden h-12 w-12"
               onClick={() => setSidebarOpen(true)}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-7 w-7" />
             </Button>
-            <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+            <h1 className="text-xl font-bold text-foreground">{title}</h1>
           </div>
-          <Link href="/notifications" className="lg:hidden">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-semibold text-white">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
+          
+          <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="rounded-full h-11 w-11"
+              title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+            >
+              {theme === "light" ? (
+                <Moon className="h-6 w-6" />
+              ) : (
+                <Sun className="h-6 w-6" />
               )}
             </Button>
-          </Link>
+            
+            {/* Mobile notifications */}
+            <Link href="/notifications" className="lg:hidden">
+              <Button variant="ghost" size="icon" className="relative rounded-full h-11 w-11">
+                <Bell className="h-6 w-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white shadow-md">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
+          </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto bg-background p-4 lg:p-6">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>
