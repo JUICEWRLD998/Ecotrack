@@ -9,7 +9,7 @@ import { AppShell } from "@/components/layout/app-shell-server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/requests";
-import { getNotifications } from "@/lib/notifications";
+import { getNotifications, type AppNotification } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 
 export default async function NotificationsPage() {
@@ -19,7 +19,7 @@ export default async function NotificationsPage() {
     redirect("/login");
   }
 
-  let notifications = [];
+  let notifications: AppNotification[] = [];
   let unreadCount = 0;
   
   try {
@@ -28,7 +28,6 @@ export default async function NotificationsPage() {
     unreadCount = result.unreadCount;
   } catch (error) {
     console.error("Failed to load notifications:", error);
-    // Return empty state instead of crashing
   }
   
   const shellRole = session.user.role === "ADMIN" ? "admin" : "resident";

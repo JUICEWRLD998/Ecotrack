@@ -120,7 +120,10 @@ export function getRequestCollectionDate(request: ResidentWasteRequest) {
 export function getNextCollectionDate(requests: ResidentWasteRequest[]) {
   const now = Date.now();
   const scheduledDates = requests
-    .flatMap((request) => [request.scheduledDate, ...request.schedules.map((schedule) => schedule.collectionDate)])
+    .flatMap((request) => [
+      request.scheduledDate,
+      request.schedule?.collectionDate ?? null
+    ])
     .filter((value): value is string => Boolean(value))
     .map((value) => new Date(value))
     .filter((date) => date.getTime() >= now)

@@ -12,7 +12,8 @@ import {
   formatWasteType,
   getNextCollectionDate,
   getRequestCollectionDate,
-  getMyRequests
+  getMyRequests,
+  type ResidentWasteRequest
 } from "@/lib/requests";
 
 export default async function ResidentDashboardPage() {
@@ -23,14 +24,12 @@ export default async function ResidentDashboardPage() {
   }
 
   // Simplified: Fetch requests with basic error handling
-  let requests = [];
+  let requests: ResidentWasteRequest[] = [];
   
   try {
     requests = await getMyRequests(session.apiToken);
   } catch (err) {
     console.error("Dashboard error:", err);
-    // Return empty array, let UI handle empty state
-    requests = [];
   }
 
   const recentRequests = requests.slice(0, 5);
