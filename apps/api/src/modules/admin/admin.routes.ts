@@ -721,43 +721,43 @@ adminRouter.post(
 
       const nextStatus = wasteRequest.status === "COLLECTED" ? wasteRequest.status : "SCHEDULED";
 
-      // Run schedule creation, request update, and audit log in parallel
-      const [createdSchedule] = await Promise.all([
-        tx.collectionSchedule.create({
-          data: {
+      // Run sequentially to avoid transaction timeout on serverless DB
+      const createdSchedule = await tx.collectionSchedule.create({
+        data: {
+          requestId: wasteRequest.id,
+          collectionDate: request.body.collectionDate,
+          notes: request.body.notes
+        },
+        include: scheduleInclude
+      });
+
+      await tx.wasteRequest.update({
+        where: { id: wasteRequest.id },
+        data: {
+          scheduledDate: request.body.collectionDate,
+          status: nextStatus,
+          statusHistory: {
+            create: {
+              status: nextStatus,
+              note: `Collection scheduled for ${request.body.collectionDate.toISOString()}`,
+              changedById: request.user!.id
+            }
+          }
+        }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: request.user!.id,
+          action: "SCHEDULE_CREATED",
+          entity: "CollectionSchedule",
+          entityId: wasteRequest.id,
+          metadata: {
             requestId: wasteRequest.id,
-            collectionDate: request.body.collectionDate,
-            notes: request.body.notes
-          },
-          include: scheduleInclude
-        }),
-        tx.wasteRequest.update({
-          where: { id: wasteRequest.id },
-          data: {
-            scheduledDate: request.body.collectionDate,
-            status: nextStatus,
-            statusHistory: {
-              create: {
-                status: nextStatus,
-                note: `Collection scheduled for ${request.body.collectionDate.toISOString()}`,
-                changedById: request.user!.id
-              }
-            }
+            collectionDate: request.body.collectionDate.toISOString()
           }
-        }),
-        tx.auditLog.create({
-          data: {
-            actorId: request.user!.id,
-            action: "SCHEDULE_CREATED",
-            entity: "CollectionSchedule",
-            entityId: wasteRequest.id,
-            metadata: {
-              requestId: wasteRequest.id,
-              collectionDate: request.body.collectionDate.toISOString()
-            }
-          }
-        })
-      ]);
+        }
+      });
 
       return createdSchedule;
     }, { timeout: 15000 });
@@ -811,45 +811,45 @@ adminRouter.patch(
       const nextStatus = existingSchedule.request.status === "COLLECTED" ? "COLLECTED" : "SCHEDULED";
       const newCollectionDate = request.body.collectionDate ?? existingSchedule.collectionDate;
 
-      // Run update, request update, and audit log in parallel
-      const [updatedSchedule] = await Promise.all([
-        tx.collectionSchedule.update({
-          where: { id: existingSchedule.id },
-          data: {
-            collectionDate: request.body.collectionDate,
-            notes: request.body.notes
-          },
-          include: scheduleInclude
-        }),
-        tx.wasteRequest.update({
-          where: { id: existingSchedule.requestId },
-          data: {
-            scheduledDate: newCollectionDate,
-            status: nextStatus,
-            statusHistory: request.body.collectionDate
-              ? {
-                  create: {
-                    status: nextStatus,
-                    note: `Collection rescheduled for ${request.body.collectionDate.toISOString()}`,
-                    changedById: request.user!.id
-                  }
+      // Run sequentially to avoid transaction timeout on serverless DB
+      const updatedSchedule = await tx.collectionSchedule.update({
+        where: { id: existingSchedule.id },
+        data: {
+          collectionDate: request.body.collectionDate,
+          notes: request.body.notes
+        },
+        include: scheduleInclude
+      });
+
+      await tx.wasteRequest.update({
+        where: { id: existingSchedule.requestId },
+        data: {
+          scheduledDate: newCollectionDate,
+          status: nextStatus,
+          statusHistory: request.body.collectionDate
+            ? {
+                create: {
+                  status: nextStatus,
+                  note: `Collection rescheduled for ${request.body.collectionDate.toISOString()}`,
+                  changedById: request.user!.id
                 }
-              : undefined
+              }
+            : undefined
+        }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: request.user!.id,
+          action: "SCHEDULE_UPDATED",
+          entity: "CollectionSchedule",
+          entityId: existingSchedule.id,
+          metadata: {
+            requestId: existingSchedule.requestId,
+            collectionDate: newCollectionDate.toISOString()
           }
-        }),
-        tx.auditLog.create({
-          data: {
-            actorId: request.user!.id,
-            action: "SCHEDULE_UPDATED",
-            entity: "CollectionSchedule",
-            entityId: existingSchedule.id,
-            metadata: {
-              requestId: existingSchedule.requestId,
-              collectionDate: newCollectionDate.toISOString()
-            }
-          }
-        })
-      ]);
+        }
+      });
 
       return updatedSchedule;
     }, { timeout: 15000 });
@@ -900,40 +900,23 @@ adminRouter.delete(
         throw new AppError("Schedule not found", 404);
       }
 
-      const removedSchedule = await tx.collectionSchedule.delete({
-        where: {
-          id: existingSchedule.id
-        },
-        include: scheduleInclude
-      });
-
-      const nextSchedule = await tx.collectionSchedule.findFirst({
-        where: {
-          requestId: existingSchedule.requestId
-        },
-        orderBy: {
-          collectionDate: "asc"
-        },
-        select: {
-          collectionDate: true
-        }
-      });
-
       const nextStatus =
         existingSchedule.request.status === "COLLECTED"
           ? "COLLECTED"
-          : nextSchedule
-            ? "SCHEDULED"
-            : existingSchedule.request.assignedToId
-              ? "ASSIGNED"
-              : "PENDING";
+          : existingSchedule.request.assignedToId
+            ? "ASSIGNED"
+            : "PENDING";
+
+      // Run sequentially to avoid transaction timeout on serverless DB
+      const removedSchedule = await tx.collectionSchedule.delete({
+        where: { id: existingSchedule.id },
+        include: scheduleInclude
+      });
 
       await tx.wasteRequest.update({
-        where: {
-          id: existingSchedule.requestId
-        },
+        where: { id: existingSchedule.requestId },
         data: {
-          scheduledDate: nextSchedule?.collectionDate ?? null,
+          scheduledDate: null,
           status: nextStatus,
           statusHistory: {
             create: {
@@ -958,7 +941,7 @@ adminRouter.delete(
       });
 
       return removedSchedule;
-    });
+    }, { timeout: 15000 });
 
     await createNotifications([
       {

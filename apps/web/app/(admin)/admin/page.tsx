@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Primary Metrics */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Card className="relative overflow-hidden border-border shadow-lg">
             <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-500/10 dark:bg-blue-500/20"></div>
             <CardContent className="relative p-6">
@@ -116,7 +116,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Secondary Metrics */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Card className="border-border shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
