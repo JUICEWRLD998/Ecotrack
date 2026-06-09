@@ -2,9 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/auth";
 import { AdminRequestActions } from "@/components/admin/admin-request-actions";
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShell } from "@/components/layout/app-shell-server";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,9 +25,9 @@ type AdminRequestDetailsPageProps = {
 };
 
 export default async function AdminRequestDetailsPage({ params }: AdminRequestDetailsPageProps) {
-  const session = await auth();
+  const session = await getSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/login");
   }
 

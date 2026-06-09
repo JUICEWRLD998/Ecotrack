@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { Filter } from "lucide-react";
 import { USER_ROLES } from "@/lib/schemas";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/auth";
 import { AdminUserActions } from "@/components/admin/admin-user-actions";
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShell } from "@/components/layout/app-shell-server";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,9 +22,9 @@ type AdminUsersPageProps = {
 };
 
 export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
-  const session = await auth();
+  const session = await getSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/login");
   }
 

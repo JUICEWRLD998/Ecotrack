@@ -2,9 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Filter } from "lucide-react";
 import { REQUEST_STATUS_LABELS, REQUEST_STATUSES, WASTE_TYPE_LABELS, WASTE_TYPES } from "@/lib/schemas";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/auth";
 import { AnalyticsCharts } from "@/components/analytics/analytics-charts";
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShell } from "@/components/layout/app-shell-server";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,9 +23,9 @@ type AdminAnalyticsPageProps = {
 };
 
 export default async function AdminAnalyticsPage({ searchParams }: AdminAnalyticsPageProps) {
-  const session = await auth();
+  const session = await getSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/login");
   }
 

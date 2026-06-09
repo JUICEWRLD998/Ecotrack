@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, Package, Clock, CheckCircle, Calendar as CalendarIcon, ArrowRight, TrendingUp } from "lucide-react";
-import { auth } from "@/auth";
-import { AppShell } from "@/components/layout/app-shell";
+import { getSession } from "@/lib/auth";
+import { AppShell } from "@/components/layout/app-shell-server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,13 +16,23 @@ import {
 } from "@/lib/requests";
 
 export default async function ResidentDashboardPage() {
-  const session = await auth();
+  const session = await getSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/login");
   }
 
-  const requests = await getMyRequests(session.apiToken);
+  // Simplified: Fetch requests with basic error handling
+  let requests = [];
+  
+  try {
+    requests = await getMyRequests(session.apiToken);
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    // Return empty array, let UI handle empty state
+    requests = [];
+  }
+
   const recentRequests = requests.slice(0, 5);
   const pendingCount = requests.filter((request) => request.status === "PENDING").length;
   const inProgressCount = requests.filter((request) => 

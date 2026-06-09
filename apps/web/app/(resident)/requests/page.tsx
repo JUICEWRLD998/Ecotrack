@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
-import { auth } from "@/auth";
-import { AppShell } from "@/components/layout/app-shell";
+import { getSession } from "@/lib/auth";
+import { AppShell } from "@/components/layout/app-shell-server";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,9 @@ import {
 } from "@/lib/requests";
 
 export default async function MyRequestsPage() {
-  const session = await auth();
+  const session = await getSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/login");
   }
 

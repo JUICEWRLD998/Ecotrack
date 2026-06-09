@@ -2,8 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Filter } from "lucide-react";
 import { REQUEST_STATUS_LABELS, REQUEST_STATUSES, WASTE_TYPE_LABELS, WASTE_TYPES } from "@/lib/schemas";
-import { auth } from "@/auth";
-import { AppShell } from "@/components/layout/app-shell";
+import { getSession } from "@/lib/auth";
+import { AppShell } from "@/components/layout/app-shell-server";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,9 +28,9 @@ type AdminRequestsPageProps = {
 };
 
 export default async function AdminRequestsPage({ searchParams }: AdminRequestsPageProps) {
-  const session = await auth();
+  const session = await getSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/login");
   }
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { AppShell } from "@/components/layout/app-shell";
+import { getSession } from "@/lib/auth";
+import { AppShell } from "@/components/layout/app-shell-server";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,9 +26,9 @@ import {
 } from "lucide-react";
 
 export default async function AdminDashboardPage() {
-  const session = await auth();
+  const session = await getSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/login");
   }
 

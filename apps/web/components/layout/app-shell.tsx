@@ -18,12 +18,12 @@ import {
   ClipboardList,
   LogOut
 } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { logoutAction } from "@/lib/actions/auth-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type AppShellProps = {
+export type AppShellClientProps = {
   title: string;
   role: "resident" | "admin";
   children: React.ReactNode;
@@ -49,13 +49,13 @@ const adminLinks = [
   { href: "/notifications", label: "Notifications", icon: Bell }
 ];
 
-export function AppShellClient({ title, role, children, unreadCount = 0, userName }: AppShellProps) {
+export function AppShellClient({ title, role, children, unreadCount = 0, userName }: AppShellClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const links = role === "admin" ? adminLinks : residentLinks;
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" });
+    await logoutAction();
   };
 
   return (
@@ -75,7 +75,7 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Logo & Close button */}
+        {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-600">
@@ -140,7 +140,7 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-sm font-semibold text-white">
               {userName?.charAt(0).toUpperCase() || "U"}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-gray-900">{userName || "User"}</p>
               <p className="text-xs text-gray-500">{role === "admin" ? "Administrator" : "Resident"}</p>
             </div>
@@ -171,8 +171,6 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
             </Button>
             <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
           </div>
-
-          {/* Notifications bell (mobile) */}
           <Link href="/notifications" className="lg:hidden">
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
@@ -185,34 +183,11 @@ export function AppShellClient({ title, role, children, unreadCount = 0, userNam
           </Link>
         </header>
 
-        {/* Content area */}
+        {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4 lg:p-6">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>
     </div>
-  );
-}
-
-
-// Server component wrapper
-export async function AppShell({ title, role, children }: Omit<AppShellProps, "unreadCount" | "userName">) {
-  const { auth } = await import("@/auth");
-  const { getUnreadNotificationCount } = await import("@/lib/notifications");
-  
-  const session = await auth();
-  const unreadCount = session?.apiToken
-    ? await getUnreadNotificationCount(session.apiToken).catch(() => 0)
-    : 0;
-
-  return (
-    <AppShellClient
-      title={title}
-      role={role}
-      unreadCount={unreadCount}
-      userName={session?.user?.name || undefined}
-    >
-      {children}
-    </AppShellClient>
   );
 }

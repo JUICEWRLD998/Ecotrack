@@ -2,10 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Filter } from "lucide-react";
 import { REQUEST_STATUS_LABELS, REQUEST_STATUSES, WASTE_TYPE_LABELS, WASTE_TYPES } from "@/lib/schemas";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/auth";
 import { AdminScheduleActions, AdminScheduleCreateForm } from "@/components/admin/admin-schedule-actions";
 import { ScheduleCalendar } from "@/components/calendar/schedule-calendar";
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShell } from "@/components/layout/app-shell-server";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,9 @@ type AdminSchedulesPageProps = {
 };
 
 export default async function AdminSchedulesPage({ searchParams }: AdminSchedulesPageProps) {
-  const session = await auth();
+  const session = await getSession();
 
-  if (!session?.user) {
+  if (!session) {
     redirect("/login");
   }
 
