@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import type { LoginInput, RegisterInput } from "@ecotrack/shared";
+import type { LoginInput, RegisterInput } from "../../schemas";
 import { prisma } from "../../config/prisma";
 import type { AuthenticatedUser } from "../../types/auth";
 import { signAuthToken } from "../../utils/auth-token";

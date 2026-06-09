@@ -11,7 +11,7 @@ import {
   updateWasteRequestStatusSchema,
   userRoleSchema,
   wasteTypeSchema
-} from "@ecotrack/shared";
+} from "../../schemas";
 import { z } from "zod";
 import { prisma } from "../../config/prisma";
 import { authenticate } from "../../middleware/authenticate";

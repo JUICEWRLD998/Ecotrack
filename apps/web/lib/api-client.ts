@@ -1,32 +1,20 @@
-function getDeploymentOrigin() {
-  if (process.env.NEXTAUTH_URL) {
-    return process.env.NEXTAUTH_URL;
-  }
-
-  if (process.env.AUTH_URL) {
-    return process.env.AUTH_URL;
-  }
-
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-
-  return null;
-}
+// API client for making requests to the embedded Express API
+// All requests go to /api/backend/* which is handled by Next.js API routes
 
 function getApiBaseUrl() {
-  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL;
-
-  if (configuredBaseUrl) {
-    return configuredBaseUrl;
-  }
-
+  // In the browser, use relative URLs
   if (typeof window !== "undefined") {
     return "/api/backend";
   }
 
-  const deploymentOrigin = getDeploymentOrigin();
-  return deploymentOrigin ? `${deploymentOrigin}/api/backend` : "http://localhost:4000/api";
+  // On the server, use the full URL
+  const deploymentUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL;
+  if (deploymentUrl) {
+    return `${deploymentUrl}/api/backend`;
+  }
+
+  // Fallback for local server-side rendering
+  return "http://localhost:3000/api/backend";
 }
 
 export class ApiError extends Error {

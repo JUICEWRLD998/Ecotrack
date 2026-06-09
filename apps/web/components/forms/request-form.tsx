@@ -6,7 +6,7 @@ import { CalendarDays, Send, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { WASTE_TYPE_LABELS, WASTE_TYPES } from "@ecotrack/shared";
+import { WASTE_TYPE_LABELS, WASTE_TYPES } from "@/lib/schemas";
 import { ApiError, apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

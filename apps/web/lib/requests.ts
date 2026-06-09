@@ -4,7 +4,7 @@ import {
   type RequestStatus,
   type UserRole,
   type WasteType
-} from "@ecotrack/shared";
+} from "@/lib/schemas";
 import { apiClient } from "@/lib/api-client";
 
 export type RequestSchedule = {

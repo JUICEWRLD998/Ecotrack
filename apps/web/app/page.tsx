@@ -1,65 +1,158 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Recycle, ShieldCheck } from "lucide-react";
+import { ArrowRight, CalendarDays, Leaf, Recycle, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const featureCards = [
   {
-    title: "Resident Requests",
-    description: "Submit full-bin reports with waste type, preferred date, address, and image evidence.",
+    title: "Quick Reporting",
+    description: "Submit collection requests with photos, locations, and preferred pickup dates in seconds.",
     icon: Recycle
   },
   {
-    title: "Collection Scheduling",
-    description: "Coordinate upcoming pickups with calendar-backed scheduled collection dates.",
+    title: "Smart Scheduling",
+    description: "View upcoming collections on an interactive calendar and get notified of schedule changes.",
     icon: CalendarDays
   },
   {
     title: "Admin Control",
-    description: "Assign, schedule, and track requests through the complete collection workflow.",
+    description: "Manage requests, assign teams, track progress, and monitor analytics from one dashboard.",
     icon: ShieldCheck
   }
 ];
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,hsl(var(--accent)),hsl(var(--background))_42%)]">
-      <section className="container flex min-h-[68vh] flex-col justify-center gap-10 py-16">
-        <div className="max-w-3xl space-y-6">
-          <p className="text-sm font-medium uppercase tracking-wider text-primary">Waste Management Platform</p>
-          <h1 className="text-4xl font-semibold tracking-normal text-foreground sm:text-5xl">
-            EcoTrack
-          </h1>
-          <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-            A production-ready foundation for residents to request waste collection and for administrators to coordinate assignments, schedules, and request status updates.
+    <main className="min-h-screen">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-green-50 to-white dark:from-green-950/20 dark:to-background">
+        <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25" />
+        
+        <div className="container relative">
+          {/* Header */}
+          <header className="flex items-center justify-between py-6">
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600 text-white">
+                <Leaf className="h-6 w-6" />
+              </span>
+              <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                EcoTrack
+              </span>
+            </Link>
+            
+            <div className="flex gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Sign In</Link>
+              </Button>
+              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
+                <Link href="/register">Get Started</Link>
+              </Button>
+            </div>
+          </header>
+
+          {/* Hero Content */}
+          <section className="flex min-h-[600px] flex-col justify-center py-20">
+            <div className="mx-auto max-w-4xl text-center space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full border bg-white/50 px-4 py-1.5 text-sm shadow-sm backdrop-blur-sm dark:bg-slate-900/50">
+                <Sparkles className="h-4 w-4 text-green-600" />
+                <span>Modern Waste Management</span>
+              </div>
+              
+              <h1 className="text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+                Smarter Waste
+                <br />
+                <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  Collection Management
+                </span>
+              </h1>
+              
+              <p className="mx-auto max-w-2xl text-lg text-muted-foreground sm:text-xl">
+                Connect residents with waste collection teams. Submit requests, track pickups, 
+                and manage schedules all in one beautiful platform.
+              </p>
+              
+              <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <Button asChild size="lg" className="gap-2 bg-green-600 hover:bg-green-700">
+                  <Link href="/register">
+                    Start as Resident
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg">
+                  <Link href="/login">Admin Access</Link>
+                </Button>
+              </div>
+
+              <div className="pt-8 text-sm text-muted-foreground">
+                <p>
+                  Already have an account?{" "}
+                  <Link href="/login" className="font-medium text-green-600 hover:underline">
+                    Sign in →
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <section className="container py-20">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Everything You Need
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Powerful features for residents and administrators
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Button asChild>
-              <Link href="/dashboard">
-                Resident Dashboard
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {featureCards.map((feature) => (
+            <Card key={feature.title} className="border-2 transition-all hover:shadow-lg">
+              <CardHeader>
+                <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
+                  <feature.icon className="h-6 w-6 text-green-600" />
+                </div>
+                <CardTitle className="text-xl">{feature.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-gradient-to-r from-green-600 to-emerald-600">
+        <div className="container py-20 text-center text-white">
+          <h2 className="text-3xl font-bold sm:text-4xl">
+            Ready to Get Started?
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-green-50">
+            Join residents and administrators using EcoTrack to manage waste collection efficiently.
+          </p>
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <Button asChild size="lg" variant="secondary" className="bg-white text-green-600 hover:bg-green-50">
+              <Link href="/register">Create Account</Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link href="/admin">Admin Dashboard</Link>
+            <Button asChild size="lg" variant="outline" className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-green-600">
+              <Link href="/login">Sign In</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      <section className="container grid gap-4 pb-16 md:grid-cols-3">
-        {featureCards.map((feature) => (
-          <Card key={feature.title}>
-            <CardHeader>
-              <feature.icon className="h-5 w-5 text-primary" />
-              <CardTitle>{feature.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-6 text-muted-foreground">{feature.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </section>
+      {/* Footer */}
+      <footer className="border-t py-8">
+        <div className="container flex items-center justify-between text-sm text-muted-foreground">
+          <p>© 2026 EcoTrack. Built for efficient waste management.</p>
+          <Link href="/" className="hover:text-foreground">
+            Documentation
+          </Link>
+        </div>
+      </footer>
     </main>
   );
 }

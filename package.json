@@ -3,15 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ],
   "scripts": {
-    "dev": "npm run build -w @ecotrack/shared && concurrently \"npm run dev -w @ecotrack/api\" \"npm run dev -w @ecotrack/web\"",
-    "dev:web": "npm run build -w @ecotrack/shared && npm run dev -w @ecotrack/web",
-    "dev:api": "npm run build -w @ecotrack/shared && npm run dev -w @ecotrack/api",
-    "build": "npm run build -w @ecotrack/shared && npm run build -w @ecotrack/api && npm run build -w @ecotrack/web",
-    "typecheck": "npm run typecheck -w @ecotrack/shared && npm run build -w @ecotrack/shared && npm run typecheck -w @ecotrack/api && npm run typecheck -w @ecotrack/web",
+    "dev": "npm run dev -w @ecotrack/web",
+    "build": "npm run build -w @ecotrack/web",
+    "start": "npm run start -w @ecotrack/web",
+    "typecheck": "npm run typecheck -w @ecotrack/api && npm run typecheck -w @ecotrack/web",
     "lint": "npm run lint -w @ecotrack/web",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

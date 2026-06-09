@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { CalendarPlus, RefreshCw, UserCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { REQUEST_STATUS_LABELS, REQUEST_STATUSES, type RequestStatus } from "@ecotrack/shared";
+import { REQUEST_STATUS_LABELS, REQUEST_STATUSES, type RequestStatus } from "@/lib/schemas";
 import { ApiError, apiClient } from "@/lib/api-client";
 import type { AdminUser } from "@/lib/admin";
 import { dateInputToIso } from "@/lib/schedules";

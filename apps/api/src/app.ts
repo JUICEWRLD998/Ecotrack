@@ -11,6 +11,9 @@ import { apiRouter } from "./modules";
 export function createApp() {
   const app = express();
 
+  // Trust proxy (required for rate limiting behind proxies like Next.js)
+  app.set("trust proxy", 1);
+
   // Logging
   app.use(httpLogger);
 

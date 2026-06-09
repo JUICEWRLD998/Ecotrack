@@ -1,4 +1,4 @@
-import type { RequestStatus, WasteType } from "@ecotrack/shared";
+import type { RequestStatus, WasteType } from "@/lib/schemas";
 import { apiClient } from "@/lib/api-client";
 
 export type ResidentCollectionSchedule = {

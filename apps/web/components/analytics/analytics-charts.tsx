@@ -20,7 +20,7 @@ import {
   WASTE_TYPE_LABELS,
   type RequestStatus,
   type WasteType
-} from "@ecotrack/shared";
+} from "@/lib/schemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CompletionRateAnalytics, MonthlyTrend, WasteTypeAnalytics } from "@/lib/admin";
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginSchema, registerSchema } from "@ecotrack/shared";
+import { loginSchema, registerSchema } from "../../schemas";
 import { authenticate } from "../../middleware/authenticate";
 import { authRateLimiter } from "../../middleware/rate-limiter";
 import { validateRequest } from "../../middleware/validate-request";

@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import type { UserRole } from "@ecotrack/shared";
+import type { UserRole } from "../schemas";
 import { AppError } from "../utils/app-error";
 
 export function requireRole(...allowedRoles: UserRole[]): RequestHandler {

@@ -1,5 +1,5 @@
+import type { UserRole } from "@/lib/schemas";
 import type { DefaultSession } from "next-auth";
-import type { UserRole } from "@ecotrack/shared";
 
 declare module "next-auth" {
   interface Session {

@@ -1,4 +1,4 @@
-import type { UpdateProfileInput } from "@ecotrack/shared";
+import type { UpdateProfileInput } from "../../schemas";
 import { prisma } from "../../config/prisma";
 import { AppError } from "../../utils/app-error";
 

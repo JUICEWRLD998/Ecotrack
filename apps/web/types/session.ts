@@ -1,4 +1,4 @@
-import type { UserRole } from "@ecotrack/shared";
+import type { UserRole } from "@/lib/schemas";
 
 export type SessionUser = {
   id: string;

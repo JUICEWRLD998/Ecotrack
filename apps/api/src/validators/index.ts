@@ -7,4 +7,4 @@ export {
   updateProfileSchema,
   updateWasteRequestSchema,
   updateWasteRequestStatusSchema
-} from "@ecotrack/shared";
+} from "../schemas";

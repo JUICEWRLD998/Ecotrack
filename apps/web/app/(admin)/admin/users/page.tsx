@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { Filter } from "lucide-react";
-import { USER_ROLES } from "@ecotrack/shared";
+import { USER_ROLES } from "@/lib/schemas";
 import { auth } from "@/auth";
 import { AdminUserActions } from "@/components/admin/admin-user-actions";
 import { AppShell } from "@/components/layout/app-shell";

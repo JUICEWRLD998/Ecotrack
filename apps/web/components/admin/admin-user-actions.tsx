@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { USER_ROLES } from "@ecotrack/shared";
+import { USER_ROLES } from "@/lib/schemas";
 import { ApiError, apiClient } from "@/lib/api-client";
 import type { AdminUser } from "@/lib/admin";
 import { formatRole } from "@/lib/admin";

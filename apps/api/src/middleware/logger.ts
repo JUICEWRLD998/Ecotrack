@@ -2,18 +2,14 @@ import pino from "pino";
 import pinoHttp from "pino-http";
 import { env } from "../config/env";
 
+// Simple logger without pino-pretty (doesn't work in Next.js bundled environment)
 export const logger = pino({
   level: env.NODE_ENV === "production" ? "info" : "debug",
-  transport: env.NODE_ENV !== "production" 
-    ? {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          ignore: "pid,hostname",
-          translateTime: "SYS:standard"
-        }
-      }
-    : undefined
+  formatters: {
+    level: (label) => {
+      return { level: label };
+    }
+  }
 });
 
 export const httpLogger = pinoHttp({

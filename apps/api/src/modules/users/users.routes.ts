@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateProfileSchema } from "@ecotrack/shared";
+import { updateProfileSchema } from "../../schemas";
 import { authenticate } from "../../middleware/authenticate";
 import { validateRequest } from "../../middleware/validate-request";
 import { asyncHandler } from "../../utils/async-handler";

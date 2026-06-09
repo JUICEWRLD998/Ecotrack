@@ -1,4 +1,4 @@
-import type { UserRole } from "@ecotrack/shared";
+import type { UserRole } from "../schemas";
 
 export type AuthenticatedUser = {
   id: string;
@@ -6,3 +6,12 @@ export type AuthenticatedUser = {
   email: string;
   role: UserRole;
 };
+
+// Extend Express Request type
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthenticatedUser;
+    }
+  }
+}

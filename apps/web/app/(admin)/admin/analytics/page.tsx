@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Filter } from "lucide-react";
-import { REQUEST_STATUS_LABELS, REQUEST_STATUSES, WASTE_TYPE_LABELS, WASTE_TYPES } from "@ecotrack/shared";
+import { REQUEST_STATUS_LABELS, REQUEST_STATUSES, WASTE_TYPE_LABELS, WASTE_TYPES } from "@/lib/schemas";
 import { auth } from "@/auth";
 import { AnalyticsCharts } from "@/components/analytics/analytics-charts";
 import { AppShell } from "@/components/layout/app-shell";

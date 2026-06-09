@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 import { prisma } from "../config/prisma";
 import { verifyAuthToken } from "../utils/auth-token";
 import { AppError } from "../utils/app-error";
+import type { AuthenticatedUser } from "../types/auth";
 
 export const authenticate: RequestHandler = async (request, _response, next) => {
   try {

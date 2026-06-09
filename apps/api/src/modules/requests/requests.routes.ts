@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { createWasteRequestSchema, updateWasteRequestSchema } from "@ecotrack/shared";
+import { createWasteRequestSchema, updateWasteRequestSchema } from "../../schemas";
 import { prisma } from "../../config/prisma";
 import { authenticate } from "../../middleware/authenticate";
 import { validateRequest } from "../../middleware/validate-request";
