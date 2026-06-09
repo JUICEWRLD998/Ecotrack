@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Leaf, Recycle, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, CalendarDays, Leaf, Moon, Recycle, ShieldCheck, Sparkles, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTheme } from "@/components/providers/theme-provider";
 
 const featureCards = [
   {
@@ -22,6 +25,8 @@ const featureCards = [
 ];
 
 export default function HomePage() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
@@ -40,7 +45,22 @@ export default function HomePage() {
               </span>
             </Link>
             
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="rounded-full"
+                title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+              >
+                {theme === "light" ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+              </Button>
+              
               <Button asChild variant="ghost" size="sm">
                 <Link href="/login">Sign In</Link>
               </Button>

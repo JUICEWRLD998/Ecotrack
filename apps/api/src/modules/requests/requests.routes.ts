@@ -22,11 +22,7 @@ const requestInclude = {
       email: true
     }
   },
-  schedules: {
-    orderBy: {
-      collectionDate: "asc" as const
-    }
-  },
+  schedule: true,
   statusHistory: {
     orderBy: {
       createdAt: "desc" as const

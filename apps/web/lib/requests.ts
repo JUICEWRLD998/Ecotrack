@@ -47,7 +47,7 @@ export type ResidentWasteRequest = {
     name: string;
     email: string;
   } | null;
-  schedules: RequestSchedule[];
+  schedule: RequestSchedule | null;
   statusHistory: RequestStatusHistory[];
 };
 
@@ -114,7 +114,7 @@ export function formatDateTime(value: string) {
 }
 
 export function getRequestCollectionDate(request: ResidentWasteRequest) {
-  return request.scheduledDate ?? request.schedules[0]?.collectionDate ?? null;
+  return request.scheduledDate ?? request.schedule?.collectionDate ?? null;
 }
 
 export function getNextCollectionDate(requests: ResidentWasteRequest[]) {

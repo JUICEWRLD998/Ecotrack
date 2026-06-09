@@ -47,7 +47,7 @@ export type AdminWasteRequest = {
     email: string;
     isActive: boolean;
   } | null;
-  schedules: RequestSchedule[];
+  schedule: RequestSchedule | null;
   statusHistory: RequestStatusHistory[];
 };
 

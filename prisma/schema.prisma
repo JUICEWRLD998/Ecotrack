@@ -7,6 +7,90 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String          @id @default(cuid())
+  name          String
+  email         String          @unique
+  password      String
+  role          UserRole        @default(RESIDENT)
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  statusChanges StatusHistory[]
+  assigned      WasteRequest[]  @relation("AssignedRequests")
+  requests      WasteRequest[]  @relation("UserRequests")
+}
+
+model WasteRequest {
+  id            String              @id @default(cuid())
+  userId        String
+  assignedToId  String?
+  wasteType     WasteType
+  address       String
+  description   String?
+  imageUrl      String?
+  status        RequestStatus       @default(PENDING)
+  preferredDate DateTime
+  scheduledDate DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  schedule      CollectionSchedule?
+  statusHistory StatusHistory[]
+  assignedTo    User?               @relation("AssignedRequests", fields: [assignedToId], references: [id])
+  user          User                @relation("UserRequests", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StatusHistory {
+  id          String        @id @default(cuid())
+  requestId   String
+  status      RequestStatus
+  note        String?
+  changedById String
+  createdAt   DateTime      @default(now())
+  changedBy   User          @relation(fields: [changedById], references: [id])
+  request     WasteRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+}
+
+model CollectionSchedule {
+  id             String       @id @default(cuid())
+  requestId      String       @unique
+  collectionDate DateTime
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  request        WasteRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  entity    String
+  entityId  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  actor     User     @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entity, entityId])
+}
+
 enum UserRole {
   ADMIN
   RESIDENT
@@ -27,88 +111,4 @@ enum RequestStatus {
   IN_PROGRESS
   COLLECTED
   CANCELLED
-}
-
-model User {
-  id                String              @id @default(cuid())
-  name              String
-  email             String              @unique
-  password          String
-  role              UserRole            @default(RESIDENT)
-  isActive          Boolean             @default(true)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  requests          WasteRequest[]      @relation("UserRequests")
-  assigned          WasteRequest[]      @relation("AssignedRequests")
-  statusChanges     StatusHistory[]
-  notifications     Notification[]
-  auditLogs         AuditLog[]
-}
-
-model WasteRequest {
-  id                String              @id @default(cuid())
-  userId            String
-  assignedToId      String?
-  wasteType         WasteType
-  address           String
-  description       String?
-  imageUrl          String?
-  status            RequestStatus       @default(PENDING)
-  preferredDate     DateTime
-  scheduledDate     DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  user              User                @relation("UserRequests", fields: [userId], references: [id], onDelete: Cascade)
-  assignedTo        User?               @relation("AssignedRequests", fields: [assignedToId], references: [id])
-  statusHistory     StatusHistory[]
-  schedule          CollectionSchedule?
-}
-
-model StatusHistory {
-  id                String              @id @default(cuid())
-  requestId         String
-  status            RequestStatus
-  note              String?
-  changedById       String
-  createdAt         DateTime            @default(now())
-  request           WasteRequest        @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  changedBy         User                @relation(fields: [changedById], references: [id])
-
-  @@index([requestId])
-}
-
-model CollectionSchedule {
-  id                String              @id @default(cuid())
-  requestId         String              @unique
-  collectionDate    DateTime
-  notes             String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  request           WasteRequest        @relation(fields: [requestId], references: [id], onDelete: Cascade)
-}
-
-model Notification {
-  id                String              @id @default(cuid())
-  userId            String
-  title             String
-  message           String
-  read              Boolean             @default(false)
-  createdAt         DateTime            @default(now())
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model AuditLog {
-  id                String              @id @default(cuid())
-  actorId           String
-  action            String
-  entity            String
-  entityId          String
-  metadata          Json?
-  createdAt         DateTime            @default(now())
-  actor             User                @relation(fields: [actorId], references: [id])
-
-  @@index([actorId])
-  @@index([entity, entityId])
 }
