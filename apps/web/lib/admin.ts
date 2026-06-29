@@ -1,6 +1,7 @@
 import {
   REQUEST_STATUS_LABELS,
   WASTE_TYPE_LABELS,
+  type PaymentStatus,
   type RequestStatus,
   type UserRole,
   type WasteType
@@ -30,6 +31,13 @@ export type AdminWasteRequest = {
   address: string;
   description: string | null;
   imageUrl: string | null;
+  paymentAmount: number | null;
+  paymentReceiptUrl: string | null;
+  paymentStatus: PaymentStatus;
+  paymentSubmittedAt: string | null;
+  paymentVerifiedAt: string | null;
+  paymentVerifiedById: string | null;
+  paymentRejectionReason: string | null;
   status: RequestStatus;
   preferredDate: string | null;
   scheduledDate: string | null;

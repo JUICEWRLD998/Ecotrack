@@ -5,6 +5,7 @@ import {
   WASTE_TYPES,
   adminUpdateUserSchema,
   assignWasteRequestSchema,
+  rejectPaymentSchema,
   requestStatusSchema,
   scheduleCollectionSchema,
   updateCollectionScheduleSchema,
@@ -586,6 +587,126 @@ adminRouter.patch(
           ]
         : [])
     ]);
+
+    response.json({ request: updatedRequest });
+  })
+);
+
+adminRouter.patch(
+  "/requests/:id/payment/verify",
+  validateRequest({ params: idParamsSchema }),
+  asyncHandler(async (request, response) => {
+    const existingRequest = await prisma.wasteRequest.findUnique({
+      where: {
+        id: request.params.id
+      },
+      select: {
+        id: true,
+        userId: true,
+        paymentStatus: true,
+        paymentReceiptUrl: true,
+        paymentAmount: true
+      }
+    });
+
+    if (!existingRequest) {
+      throw new AppError("Request not found", 404);
+    }
+
+    if (!existingRequest.paymentReceiptUrl) {
+      throw new AppError("A receipt must be uploaded before payment can be verified", 400);
+    }
+
+    const [updatedRequest] = await prisma.$transaction([
+      prisma.wasteRequest.update({
+        where: {
+          id: existingRequest.id
+        },
+        data: {
+          paymentStatus: "VERIFIED",
+          paymentVerifiedAt: new Date(),
+          paymentVerifiedById: request.user!.id,
+          paymentRejectionReason: null
+        },
+        include: requestInclude
+      }),
+      prisma.auditLog.create({
+        data: {
+          actorId: request.user!.id,
+          action: "PAYMENT_VERIFIED",
+          entity: "WasteRequest",
+          entityId: existingRequest.id,
+          metadata: {
+            previousPaymentStatus: existingRequest.paymentStatus,
+            paymentAmount: existingRequest.paymentAmount
+          }
+        }
+      })
+    ]);
+
+    await createNotification({
+      userId: existingRequest.userId,
+      title: "Payment verified",
+      message: "Your payment receipt has been verified."
+    });
+
+    response.json({ request: updatedRequest });
+  })
+);
+
+adminRouter.patch(
+  "/requests/:id/payment/reject",
+  validateRequest({ params: idParamsSchema, body: rejectPaymentSchema }),
+  asyncHandler(async (request, response) => {
+    const existingRequest = await prisma.wasteRequest.findUnique({
+      where: {
+        id: request.params.id
+      },
+      select: {
+        id: true,
+        userId: true,
+        paymentStatus: true,
+        paymentAmount: true
+      }
+    });
+
+    if (!existingRequest) {
+      throw new AppError("Request not found", 404);
+    }
+
+    const [updatedRequest] = await prisma.$transaction([
+      prisma.wasteRequest.update({
+        where: {
+          id: existingRequest.id
+        },
+        data: {
+          paymentStatus: "REJECTED",
+          paymentVerifiedAt: null,
+          paymentVerifiedById: null,
+          paymentRejectionReason: request.body.reason
+        },
+        include: requestInclude
+      }),
+      prisma.auditLog.create({
+        data: {
+          actorId: request.user!.id,
+          action: "PAYMENT_REJECTED",
+          entity: "WasteRequest",
+          entityId: existingRequest.id,
+          metadata: {
+            previousPaymentStatus: existingRequest.paymentStatus,
+            paymentAmount: existingRequest.paymentAmount,
+            reason: request.body.reason
+          }
+        }
+      })
+    ]);
+
+    await createNotification({
+      userId: existingRequest.userId,
+      title: "Payment receipt rejected",
+      message: `Your payment receipt was rejected: ${request.body.reason}`
+    });
 
     response.json({ request: updatedRequest });
   })

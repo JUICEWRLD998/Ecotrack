@@ -13,6 +13,8 @@ import { getAdminRequest, getAdminUsers, getAdminUsersByRole } from "@/lib/admin
 import {
   formatDate,
   formatDateTime,
+  formatCurrency,
+  formatPaymentStatus,
   formatRequestStatus,
   formatWasteType,
   getRequestCollectionDate
@@ -65,6 +67,19 @@ export default async function AdminRequestDetailsPage({ params }: AdminRequestDe
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle>{formatWasteType(request.wasteType)}</CardTitle>
                 <Badge variant="secondary">{formatRequestStatus(request.status)}</Badge>
+                <Badge
+                  variant={
+                    request.paymentStatus === "VERIFIED"
+                      ? "default"
+                      : request.paymentStatus === "REJECTED"
+                      ? "destructive"
+                      : request.paymentStatus === "PENDING_VERIFICATION"
+                      ? "secondary"
+                      : "outline"
+                  }
+                >
+                  {formatPaymentStatus(request.paymentStatus)}
+                </Badge>
                 {!request.assignedTo ? <Badge variant="outline">Unassigned</Badge> : null}
               </div>
               <p className="text-sm leading-6 text-muted-foreground">{request.address}</p>
@@ -122,6 +137,63 @@ export default async function AdminRequestDetailsPage({ params }: AdminRequestDe
                   </div>
                 </div>
               ) : null}
+
+              <div className="space-y-4 rounded-md border p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-sm font-medium">Payment</h2>
+                  <Badge
+                    variant={
+                      request.paymentStatus === "VERIFIED"
+                        ? "default"
+                        : request.paymentStatus === "REJECTED"
+                        ? "destructive"
+                        : request.paymentStatus === "PENDING_VERIFICATION"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {formatPaymentStatus(request.paymentStatus)}
+                  </Badge>
+                </div>
+                <dl className="grid gap-4 sm:grid-cols-3">
+                  <div>
+                    <dt className="text-sm font-medium">Amount</dt>
+                    <dd className="text-sm text-muted-foreground">{formatCurrency(request.paymentAmount)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium">Submitted</dt>
+                    <dd className="text-sm text-muted-foreground">{formatDateTime(request.paymentSubmittedAt ?? request.createdAt)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium">Verified</dt>
+                    <dd className="text-sm text-muted-foreground">
+                      {request.paymentVerifiedAt ? formatDateTime(request.paymentVerifiedAt) : "None"}
+                    </dd>
+                  </div>
+                </dl>
+                {request.paymentReceiptUrl ? (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Payment Receipt</h3>
+                    <div className="relative w-full max-w-md">
+                      <Image
+                        src={request.paymentReceiptUrl}
+                        alt="Payment receipt"
+                        width={600}
+                        height={400}
+                        sizes="(min-width: 1280px) 400px, (min-width: 768px) 600px, 100vw"
+                        className="w-full rounded-lg border-2 border-border object-cover shadow-sm"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No payment receipt has been uploaded.</p>
+                )}
+                {request.paymentRejectionReason ? (
+                  <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                    {request.paymentRejectionReason}
+                  </p>
+                ) : null}
+              </div>
             </CardContent>
           </Card>
 
@@ -156,6 +228,8 @@ export default async function AdminRequestDetailsPage({ params }: AdminRequestDe
           apiToken={session.apiToken}
           requestId={request.id}
           currentStatus={request.status}
+          paymentStatus={request.paymentStatus}
+          hasPaymentReceipt={Boolean(request.paymentReceiptUrl)}
           assignedToId={request.assignedToId}
           admins={admins}
         />

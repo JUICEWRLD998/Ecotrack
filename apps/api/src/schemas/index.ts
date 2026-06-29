@@ -16,6 +16,13 @@ export const REQUEST_STATUSES = [
   "COLLECTED"
 ] as const;
 
+export const PAYMENT_STATUSES = [
+  "UNPAID",
+  "PENDING_VERIFICATION",
+  "VERIFIED",
+  "REJECTED"
+] as const;
+
 export const REQUEST_STATUS_LABELS: Record<(typeof REQUEST_STATUSES)[number], string> = {
   PENDING: "Pending",
   ASSIGNED: "Assigned",
@@ -24,11 +31,30 @@ export const REQUEST_STATUS_LABELS: Record<(typeof REQUEST_STATUSES)[number], st
   COLLECTED: "Collected"
 };
 
+export const PAYMENT_STATUS_LABELS: Record<(typeof PAYMENT_STATUSES)[number], string> = {
+  UNPAID: "Unpaid",
+  PENDING_VERIFICATION: "Pending verification",
+  VERIFIED: "Verified",
+  REJECTED: "Rejected"
+};
+
 export const WASTE_TYPE_LABELS: Record<(typeof WASTE_TYPES)[number], string> = {
   HOUSEHOLD: "Household",
   RECYCLABLE: "Recyclable",
   ORGANIC: "Organic"
 };
+
+export const WASTE_TYPE_RATES: Record<(typeof WASTE_TYPES)[number], number> = {
+  HOUSEHOLD: 2000,
+  RECYCLABLE: 3000,
+  ORGANIC: 4000
+};
+
+export const PAYMENT_ACCOUNT_DETAILS = {
+  bankName: "Opay",
+  accountName: "Mustapha Fadhlullah",
+  accountNumber: "8061794206"
+} as const;
 
 // ============================================================================
 // COMMON SCHEMAS
@@ -87,8 +113,9 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 export const wasteTypeSchema = z.enum(WASTE_TYPES);
 export const requestStatusSchema = z.enum(REQUEST_STATUSES);
+export const paymentStatusSchema = z.enum(PAYMENT_STATUSES);
 
-export const createWasteRequestSchema = z.object({
+export const wasteRequestDetailsSchema = z.object({
   wasteType: wasteTypeSchema,
   address: z.string().trim().min(5, "Address must be at least 5 characters").max(240),
   description: z.string().trim().max(1000).optional(),
@@ -96,7 +123,11 @@ export const createWasteRequestSchema = z.object({
   preferredDate: z.coerce.date().optional()
 });
 
-export const updateWasteRequestSchema = createWasteRequestSchema.partial();
+export const createWasteRequestSchema = wasteRequestDetailsSchema.extend({
+  paymentReceiptUrl: z.string().url()
+});
+
+export const updateWasteRequestSchema = wasteRequestDetailsSchema.partial();
 
 export const assignWasteRequestSchema = z.object({
   assignedToId: z.string().cuid()
@@ -105,6 +136,10 @@ export const assignWasteRequestSchema = z.object({
 export const updateWasteRequestStatusSchema = z.object({
   status: requestStatusSchema,
   note: z.string().trim().max(500).optional()
+});
+
+export const rejectPaymentSchema = z.object({
+  reason: z.string().trim().min(3, "Rejection reason must be at least 3 characters").max(500)
 });
 
 export const scheduleCollectionSchema = z.object({
@@ -120,9 +155,11 @@ export const updateCollectionScheduleSchema = z.object({
 
 export type WasteType = z.infer<typeof wasteTypeSchema>;
 export type RequestStatus = z.infer<typeof requestStatusSchema>;
+export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
 export type CreateWasteRequestInput = z.infer<typeof createWasteRequestSchema>;
 export type UpdateWasteRequestInput = z.infer<typeof updateWasteRequestSchema>;
 export type AssignWasteRequestInput = z.infer<typeof assignWasteRequestSchema>;
 export type UpdateWasteRequestStatusInput = z.infer<typeof updateWasteRequestStatusSchema>;
+export type RejectPaymentInput = z.infer<typeof rejectPaymentSchema>;
 export type ScheduleCollectionInput = z.infer<typeof scheduleCollectionSchema>;
 export type UpdateCollectionScheduleInput = z.infer<typeof updateCollectionScheduleSchema>;

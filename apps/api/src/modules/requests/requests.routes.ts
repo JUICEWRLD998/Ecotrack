@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
-import { createWasteRequestSchema, updateWasteRequestSchema } from "../../schemas";
+import {
+  WASTE_TYPE_RATES,
+  createWasteRequestSchema,
+  updateWasteRequestSchema,
+  type CreateWasteRequestInput
+} from "../../schemas";
 import { prisma } from "../../config/prisma";
 import { authenticate } from "../../middleware/authenticate";
 import { validateRequest } from "../../middleware/validate-request";
@@ -52,14 +57,20 @@ requestsRouter.post(
   authenticate,
   validateRequest({ body: createWasteRequestSchema }),
   asyncHandler(async (request, response) => {
+    const body = request.body as CreateWasteRequestInput;
     const createdRequest = await prisma.wasteRequest.create({
       data: {
         userId: request.user!.id,
-        wasteType: request.body.wasteType,
-        address: request.body.address,
-        description: request.body.description,
-        imageUrl: request.body.imageUrl,
-        preferredDate: request.body.preferredDate,
+        wasteType: body.wasteType,
+        address: body.address,
+        description: body.description,
+        imageUrl: body.imageUrl,
+        paymentAmount: WASTE_TYPE_RATES[body.wasteType],
+        paymentReceiptUrl: body.paymentReceiptUrl,
+        paymentStatus: "PENDING_VERIFICATION",
+        paymentSubmittedAt: new Date(),
+        paymentRejectionReason: null,
+        preferredDate: body.preferredDate ?? new Date(),
         statusHistory: {
           create: {
             status: "PENDING",
@@ -79,7 +90,7 @@ requestsRouter.post(
       }),
       notifyActiveAdmins(
         "New collection request",
-        `${request.user!.name} submitted a ${request.body.wasteType.toLowerCase()} collection request.`
+        `${request.user!.name} submitted a ${body.wasteType.toLowerCase()} collection request.`
       )
     ]);
 

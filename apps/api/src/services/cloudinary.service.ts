@@ -16,7 +16,7 @@ export function createUploadSignature(): UploadSignature {
   }
 
   const timestamp = Math.round(Date.now() / 1000);
-  const folder = "ecotrack/requests";
+  const folder = "ecotrack/uploads";
   const paramsToSign = `folder=${folder}&timestamp=${timestamp}${env.CLOUDINARY_API_SECRET}`;
   const signature = crypto.createHash("sha1").update(paramsToSign).digest("hex");
 

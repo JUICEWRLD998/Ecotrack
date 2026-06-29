@@ -1,9 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CalendarPlus, RefreshCw, UserCheck } from "lucide-react";
+import { CalendarPlus, CheckCircle2, RefreshCw, UserCheck, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { REQUEST_STATUS_LABELS, REQUEST_STATUSES, type RequestStatus } from "@/lib/schemas";
+import {
+  PAYMENT_STATUS_LABELS,
+  REQUEST_STATUS_LABELS,
+  REQUEST_STATUSES,
+  type PaymentStatus,
+  type RequestStatus
+} from "@/lib/schemas";
 import { ApiError, apiClient } from "@/lib/api-client";
 import type { AdminUser } from "@/lib/admin";
 import { dateInputToIso } from "@/lib/schedules";
@@ -15,6 +21,8 @@ type AdminRequestActionsProps = {
   apiToken: string;
   requestId: string;
   currentStatus: RequestStatus;
+  paymentStatus: PaymentStatus;
+  hasPaymentReceipt: boolean;
   assignedToId: string | null;
   admins: AdminUser[];
 };
@@ -31,15 +39,19 @@ export function AdminRequestActions({
   apiToken,
   requestId,
   currentStatus,
+  paymentStatus,
+  hasPaymentReceipt,
   assignedToId,
   admins
 }: AdminRequestActionsProps) {
   const router = useRouter();
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isAssignPending, startAssignTransition] = useTransition();
+  const [isPaymentPending, startPaymentTransition] = useTransition();
   const [isSchedulePending, startScheduleTransition] = useTransition();
   const [isStatusPending, startStatusTransition] = useTransition();
 
@@ -64,6 +76,52 @@ export function AdminRequestActions({
         router.refresh();
       } catch (error) {
         setAssignmentError(getErrorMessage(error, "Assignment failed"));
+      }
+    });
+  }
+
+  function verifyPayment() {
+    setMessage(null);
+    setPaymentError(null);
+
+    startPaymentTransition(async () => {
+      try {
+        await apiClient(`/admin/requests/${requestId}/payment/verify`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${apiToken}`
+          }
+        });
+
+        setMessage("Payment verified");
+        router.refresh();
+      } catch (error) {
+        setPaymentError(getErrorMessage(error, "Payment verification failed"));
+      }
+    });
+  }
+
+  function rejectPayment(formData: FormData) {
+    const reason = String(formData.get("reason") ?? "").trim();
+    setMessage(null);
+    setPaymentError(null);
+
+    startPaymentTransition(async () => {
+      try {
+        await apiClient(`/admin/requests/${requestId}/payment/reject`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${apiToken}`
+          },
+          body: JSON.stringify({
+            reason
+          })
+        });
+
+        setMessage("Payment rejected");
+        router.refresh();
+      } catch (error) {
+        setPaymentError(getErrorMessage(error, "Payment rejection failed"));
       }
     });
   }
@@ -155,6 +213,46 @@ export function AdminRequestActions({
             {isAssignPending ? "Assigning..." : "Save assignment"}
           </Button>
         </form>
+
+        <div className="space-y-3 border-t pt-5">
+          <div>
+            <p className="text-sm font-medium">Payment status</p>
+            <p className="text-sm text-muted-foreground">{PAYMENT_STATUS_LABELS[paymentStatus]}</p>
+          </div>
+          <form action={verifyPayment}>
+            <Button
+              type="submit"
+              variant="secondary"
+              className="gap-2"
+              disabled={isPaymentPending || !hasPaymentReceipt || paymentStatus === "VERIFIED"}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {isPaymentPending ? "Saving..." : "Verify payment"}
+            </Button>
+          </form>
+          <form action={rejectPayment} className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="paymentRejectReason">Rejection reason</Label>
+              <textarea
+                id="paymentRejectReason"
+                name="reason"
+                rows={3}
+                className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                required
+              />
+            </div>
+            {paymentError ? <p className="text-sm text-destructive">{paymentError}</p> : null}
+            <Button
+              type="submit"
+              variant="outline"
+              className="gap-2"
+              disabled={isPaymentPending || paymentStatus === "REJECTED"}
+            >
+              <XCircle className="h-4 w-4" />
+              {isPaymentPending ? "Saving..." : "Reject payment"}
+            </Button>
+          </form>
+        </div>
 
         <form action={createSchedule} className="space-y-3 border-t pt-5">
           <div className="space-y-2">

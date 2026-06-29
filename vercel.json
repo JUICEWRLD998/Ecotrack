@@ -1,8 +1,4 @@
 {
   "version": 2,
-  "installCommand": "npm install",
-  "buildCommand": "cd apps/web && npx prisma generate --schema ../../prisma/schema.prisma && npx next build",
-  "outputDirectory": "apps/web/.next",
-  "framework": "nextjs",
   "regions": ["iad1"]
 }

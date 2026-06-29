@@ -11,6 +11,8 @@ import { ApiError } from "@/lib/api-client";
 import {
   formatDate,
   formatDateTime,
+  formatCurrency,
+  formatPaymentStatus,
   formatRequestStatus,
   formatWasteType,
   getMyRequest,
@@ -98,6 +100,59 @@ export default async function RequestDetailsPage({ params }: RequestDetailsPageP
                   </div>
                 </div>
               ) : null}
+
+              <div className="space-y-3 rounded-md border p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-sm font-medium">Payment</h2>
+                  <Badge
+                    variant={
+                      request.paymentStatus === "VERIFIED"
+                        ? "default"
+                        : request.paymentStatus === "REJECTED"
+                        ? "destructive"
+                        : request.paymentStatus === "PENDING_VERIFICATION"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {formatPaymentStatus(request.paymentStatus)}
+                  </Badge>
+                </div>
+                <dl className="grid gap-4 sm:grid-cols-3">
+                  <div>
+                    <dt className="text-sm font-medium">Amount</dt>
+                    <dd className="text-sm text-muted-foreground">{formatCurrency(request.paymentAmount)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium">Submitted</dt>
+                    <dd className="text-sm text-muted-foreground">{formatDate(request.paymentSubmittedAt)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium">Verified</dt>
+                    <dd className="text-sm text-muted-foreground">{formatDate(request.paymentVerifiedAt)}</dd>
+                  </div>
+                </dl>
+                {request.paymentReceiptUrl ? (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Receipt</h3>
+                    <div className="relative w-full max-w-md">
+                      <Image
+                        src={request.paymentReceiptUrl}
+                        alt="Payment receipt"
+                        width={600}
+                        height={400}
+                        sizes="(min-width: 1280px) 400px, (min-width: 768px) 600px, 100vw"
+                        className="w-full rounded-lg border-2 border-border object-cover shadow-sm"
+                      />
+                    </div>
+                  </div>
+                ) : null}
+                {request.paymentRejectionReason ? (
+                  <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                    {request.paymentRejectionReason}
+                  </p>
+                ) : null}
+              </div>
             </CardContent>
           </Card>
         </div>

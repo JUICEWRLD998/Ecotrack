@@ -31,6 +31,13 @@ model WasteRequest {
   address       String
   description   String?
   imageUrl      String?
+  paymentAmount Int?
+  paymentReceiptUrl String?
+  paymentStatus PaymentStatus       @default(UNPAID)
+  paymentSubmittedAt DateTime?
+  paymentVerifiedAt DateTime?
+  paymentVerifiedById String?
+  paymentRejectionReason String?
   status        RequestStatus       @default(PENDING)
   preferredDate DateTime
   scheduledDate DateTime?
@@ -111,4 +118,11 @@ enum RequestStatus {
   IN_PROGRESS
   COLLECTED
   CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
 }

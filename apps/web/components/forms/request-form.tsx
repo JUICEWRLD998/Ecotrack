@@ -2,11 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarDays, Send, UploadCloud } from "lucide-react";
+import { Banknote, CalendarDays, ReceiptText, Send, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { WASTE_TYPE_LABELS, WASTE_TYPES } from "@/lib/schemas";
+import { PAYMENT_ACCOUNT_DETAILS, WASTE_TYPE_LABELS, WASTE_TYPES } from "@/lib/schemas";
+import { formatCurrency, getWasteTypeRate } from "@/lib/requests";
 import { ApiError, apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +19,13 @@ const requestFormSchema = z.object({
   address: z.string().trim().min(5, "Address must be at least 5 characters").max(240),
   description: z.string().trim().max(1000).optional(),
   preferredDate: z.string().optional(),
-  image: z.any().optional()
+  image: z.any().optional(),
+  receipt: z
+    .any()
+    .refine(
+      (value) => typeof FileList !== "undefined" && value instanceof FileList && value.length > 0,
+      "Payment receipt is required"
+    )
 });
 
 type RequestFormInput = z.infer<typeof requestFormSchema>;
@@ -91,9 +98,12 @@ export function RequestForm({ apiToken }: RequestFormProps) {
       address: "",
       description: "",
       preferredDate: "",
-      image: undefined
+      image: undefined,
+      receipt: undefined
     }
   });
+  const selectedWasteType = form.watch("wasteType");
+  const selectedRate = getWasteTypeRate(selectedWasteType);
 
   const onSubmit = form.handleSubmit((values) => {
     setError(null);
@@ -101,7 +111,14 @@ export function RequestForm({ apiToken }: RequestFormProps) {
     startTransition(async () => {
       try {
         const file = values.image instanceof FileList ? values.image.item(0) : undefined;
+        const receipt = values.receipt instanceof FileList ? values.receipt.item(0) : undefined;
+        if (!receipt) {
+          setError("Payment receipt is required");
+          return;
+        }
+
         const imageUrl = file ? await uploadImage(apiToken, file) : undefined;
+        const paymentReceiptUrl = await uploadImage(apiToken, receipt);
         const preferredDate = values.preferredDate ? new Date(`${values.preferredDate}T00:00:00`).toISOString() : undefined;
 
         const payload = await apiClient<CreateRequestResponse>("/requests", {
@@ -114,7 +131,8 @@ export function RequestForm({ apiToken }: RequestFormProps) {
             address: values.address,
             description: values.description || undefined,
             preferredDate,
-            imageUrl
+            imageUrl,
+            paymentReceiptUrl
           })
         });
 
@@ -191,6 +209,60 @@ export function RequestForm({ apiToken }: RequestFormProps) {
 
         {/* Sidebar section */}
         <div className="space-y-6">
+          <Card className="border-border shadow-md">
+            <CardHeader>
+              <CardTitle className="text-xl">Payment</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="rounded-lg border-2 border-border bg-muted/30 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <Banknote className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Amount due</p>
+                    <p className="text-2xl font-bold text-foreground">{formatCurrency(selectedRate)}</p>
+                  </div>
+                </div>
+              </div>
+
+              <dl className="grid gap-3 rounded-lg border-2 border-border p-4 text-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <dt className="text-muted-foreground">Bank</dt>
+                  <dd className="font-semibold text-foreground">{PAYMENT_ACCOUNT_DETAILS.bankName}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <dt className="text-muted-foreground">Account name</dt>
+                  <dd className="text-right font-semibold text-foreground">{PAYMENT_ACCOUNT_DETAILS.accountName}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <dt className="text-muted-foreground">Account number</dt>
+                  <dd className="font-semibold text-foreground">{PAYMENT_ACCOUNT_DETAILS.accountNumber}</dd>
+                </div>
+              </dl>
+
+              <div className="space-y-2">
+                <Label htmlFor="receipt" className="text-base font-semibold">Payment Receipt</Label>
+                <div className="relative">
+                  <ReceiptText className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="receipt"
+                    type="file"
+                    accept="image/*"
+                    className="h-11 border-2 pl-11 file:mr-4 file:rounded-md file:border-0 file:bg-muted file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-foreground hover:file:bg-muted/80"
+                    {...form.register("receipt")}
+                    aria-invalid={Boolean(form.formState.errors.receipt)}
+                  />
+                </div>
+                {form.formState.errors.receipt ? (
+                  <p className="text-sm font-medium text-destructive">{form.formState.errors.receipt.message?.toString()}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Upload your transfer receipt after paying the amount above</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-border shadow-md">
             <CardHeader>
               <CardTitle className="text-xl">Collection Schedule</CardTitle>

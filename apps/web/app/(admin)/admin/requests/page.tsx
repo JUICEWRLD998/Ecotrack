@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { getAdminRequests, getAdminUsers, getAdminUsersByRole } from "@/lib/admin";
 import {
   formatDate,
+  formatPaymentStatus,
   formatRequestStatus,
   formatWasteType,
   getRequestCollectionDate
@@ -150,6 +151,19 @@ export default async function AdminRequestsPage({ searchParams }: AdminRequestsP
                         {formatRequestStatus(request.status)}
                       </Badge>
                       {!request.assignedTo && <Badge variant="outline">Unassigned</Badge>}
+                      <Badge
+                        variant={
+                          request.paymentStatus === "VERIFIED"
+                            ? "default"
+                            : request.paymentStatus === "REJECTED"
+                            ? "destructive"
+                            : request.paymentStatus === "PENDING_VERIFICATION"
+                            ? "secondary"
+                            : "outline"
+                        }
+                      >
+                        {formatPaymentStatus(request.paymentStatus)}
+                      </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{request.address}</p>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">

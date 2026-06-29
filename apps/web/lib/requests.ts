@@ -1,6 +1,9 @@
 import {
   REQUEST_STATUS_LABELS,
+  PAYMENT_STATUS_LABELS,
   WASTE_TYPE_LABELS,
+  WASTE_TYPE_RATES,
+  type PaymentStatus,
   type RequestStatus,
   type UserRole,
   type WasteType
@@ -37,6 +40,13 @@ export type ResidentWasteRequest = {
   address: string;
   description: string | null;
   imageUrl: string | null;
+  paymentAmount: number | null;
+  paymentReceiptUrl: string | null;
+  paymentStatus: PaymentStatus;
+  paymentSubmittedAt: string | null;
+  paymentVerifiedAt: string | null;
+  paymentVerifiedById: string | null;
+  paymentRejectionReason: string | null;
   status: RequestStatus;
   preferredDate: string | null;
   scheduledDate: string | null;
@@ -89,6 +99,26 @@ export function formatRequestStatus(status: RequestStatus) {
 
 export function formatWasteType(wasteType: WasteType) {
   return WASTE_TYPE_LABELS[wasteType];
+}
+
+export function formatPaymentStatus(status: PaymentStatus) {
+  return PAYMENT_STATUS_LABELS[status];
+}
+
+export function formatCurrency(amount: number | null | undefined) {
+  if (typeof amount !== "number") {
+    return "None";
+  }
+
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0
+  }).format(amount);
+}
+
+export function getWasteTypeRate(wasteType: WasteType) {
+  return WASTE_TYPE_RATES[wasteType];
 }
 
 export function formatDate(value: string | null | undefined) {
